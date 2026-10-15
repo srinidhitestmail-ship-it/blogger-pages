@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OmniLifecycle Engine | Wealth & Retirement Planner</title>
   <meta name="description" content="Interactive retirement planner that works backwards from your future expenses to the corpus and monthly SIP you need.">
-  <meta name="author" content="Your Name">
+  <meta name="author" content="T Chiranjeevi Srinidhi">
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
@@ -79,6 +79,11 @@
       transform: scale(1.2);
       background: #34d399;
     }
+    /* Firefox and other non-WebKit browsers: same slider look */
+    input[type=range] { appearance: none; height: 18px; }
+    input[type=range]::-moz-range-track { height: 6px; background: #1e293b; border-radius: 9999px; }
+    input[type=range]::-moz-range-progress { height: 6px; background: #0f766e; border-radius: 9999px; }
+    input[type=range]::-moz-range-thumb { height: 14px; width: 14px; border-radius: 50%; background: #10b981; border: 2px solid #0f172a; cursor: pointer; }
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
@@ -112,6 +117,30 @@
     input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(52,211,153,.45);}
     .hero-credit{display:inline-flex;align-items:center;gap:.6rem;padding:.35rem .8rem .35rem .35rem;border:1px solid #1c2638;border-radius:999px;background:#0f1624;font-size:12px;color:#aab6c8;}
     .hero-credit .av{width:28px;height:28px;border-radius:50%;background:#0f766e;color:#fff;display:grid;place-items:center;font-weight:700;font-size:11px;}
+    .drawer-ov{position:fixed;inset:0;background:rgba(2,6,14,.6);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;}
+    .drawer-ov.open{opacity:1;pointer-events:auto;}
+    .side-drawer{position:fixed;top:0;right:0;height:100%;width:min(360px,92vw);background:#0b111c;border-left:1px solid #1c2638;transform:translateX(100%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s;z-index:70;display:flex;flex-direction:column;overflow-y:auto;}
+    .side-drawer.open{transform:none;visibility:visible;transition:transform .25s ease,visibility 0s;}
+    .side-drawer.left{left:0;right:auto;border-left:0;border-right:1px solid #1c2638;transform:translateX(-100%);}
+    .side-drawer.left.open{transform:none;}
+    .edge-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:55;width:22px;height:96px;background:#0f1624;border:1px solid #1c2638;border-right:0;border-radius:10px 0 0 10px;color:#aab6c8;font-size:11px;cursor:pointer;opacity:.8;}
+    .edge-handle span{writing-mode:vertical-rl;display:block;margin:0 auto;}
+    .edge-handle:hover{opacity:1;background:#162033;color:#fff;}
+    .edge-handle.left{right:auto;left:0;border-left:0;border-right:1px solid #1c2638;border-radius:0 10px 10px 0;}
+    /* ---- Layout: inputs, results, analysis ---- */
+    #inputs,#results,#analysis{scroll-margin-top:130px;}
+    .band{display:flex;align-items:center;gap:.9rem;}
+    .band h2{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-.01em;line-height:1.2;}
+    .band p{font-size:.8rem;color:#8493a8;margin-top:.15rem;}
+    .step-no{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:.95rem;color:#fff;flex-shrink:0;}
+    .input-masonry{columns:1;column-gap:1.25rem;}
+    @media (min-width:900px){.input-masonry{columns:2;}}
+    @media (min-width:1280px){.input-masonry{columns:3;}}
+    .input-masonry>*{break-inside:avoid;margin-bottom:1.25rem;}
+    #inputs{border-top:3px solid #4f46e5;background:#0d1320;}
+    #results .kpi-wrap{border-top:3px solid #0f766e;}
+    #summaryBar a.nav-link{color:#8493a8;text-decoration:none;}
+    #summaryBar a.nav-link:hover{color:#fff;}
     @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
   </style>
 </head>
@@ -133,13 +162,13 @@
             <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">OmniLifecycle Engine</h1>
             <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/30 font-semibold">Closed-Loop Solver</span>
           </div>
-          <p class="text-[11px] text-slate-400 hidden sm:block">Wealth and retirement planner, designed by <a data-author-link class="text-slate-200 hover:text-white underline underline-offset-2"><span data-author-name>Your Name</span></a></p>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Wealth and retirement planner, designed by <a data-author-link class="text-slate-200 hover:text-white underline underline-offset-2"><span data-author-name>T Chiranjeevi Srinidhi</span></a></p>
         </div>
       </div>
 
       <!-- Currency Selector & Notation Modes -->
       <div class="flex items-center gap-2">
-        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+         <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
           <button type="button" data-curr="₹" class="curr-btn active-curr px-2.5 py-1 text-xs font-mono font-bold rounded bg-slate-800 text-brand-400 border border-brand-500/30 transition">₹ INR</button>
           <button type="button" data-curr="$" class="curr-btn px-2.5 py-1 text-xs font-mono font-bold rounded text-slate-400 hover:text-white transition">$ USD</button>
           <button type="button" data-curr="€" class="curr-btn px-2.5 py-1 text-xs font-mono font-bold rounded text-slate-400 hover:text-white transition">€ EUR</button>
@@ -155,6 +184,18 @@
     </div>
   </header>
 
+  <!-- Live summary bar -->
+  <div id="summaryBar" class="sticky top-16 z-40 border-b border-slate-800 bg-[#0a0f1a]/95 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center gap-x-8 gap-y-1 text-xs">
+      <div><span class="text-slate-400">Corpus needed at retirement</span> <strong id="sbCorpus" class="font-mono text-sm text-brand-300 ml-1">-</strong></div>
+      <div><span class="text-slate-400">Your assets reach</span> <strong id="sbProj" class="font-mono text-sm text-slate-100 ml-1">-</strong> <span id="sbPct" class="text-slate-500"></span></div>
+      <div><span class="text-slate-400">Extra to save</span> <strong id="sbSip" class="font-mono text-sm text-amber-300 ml-1">-</strong></div>
+      <nav class="ml-auto hidden md:flex gap-5" aria-label="Jump to section">
+        <a class="nav-link" href="#inputs">Inputs</a><a class="nav-link" href="#results">Results</a><a class="nav-link" href="#analysis">Analysis</a>
+      </nav>
+    </div>
+  </div>
+
   <!-- Hero -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-1">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
@@ -162,7 +203,7 @@
         <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Start from the retirement you want, and work back to what to save today.</h2>
         <p class="mt-2 text-sm text-slate-400 leading-relaxed">Enter your expenses, ages and expected returns. The planner inflates your costs to retirement, sizes the corpus that funds them to your life expectancy, and solves for the monthly SIP that gets you there.</p>
       </div>
-      <div class="hero-credit shrink-0"><span class="av" data-author-initials>YN</span><span>Designed and built by <strong class="text-slate-100" data-author-name>Your Name</strong></span></div>
+      <div class="hero-credit shrink-0"><span class="av" data-author-initials>TS</span><span>Designed and built by <strong class="text-slate-100" data-author-name>T Chiranjeevi Srinidhi</strong></span></div>
     </div>
   </section>
 
@@ -189,6 +230,34 @@
     </div>
   </section>
 
+  <!-- Slide-in panel: author details and visit count -->
+  <div id="drawerOv" class="drawer-ov"></div>
+  <button type="button" id="edgeHandle" class="edge-handle" aria-controls="sideDrawer" aria-expanded="false" aria-label="Open the About panel"><span>About</span></button>
+  <aside id="sideDrawer" class="side-drawer" role="dialog" aria-modal="true" aria-label="About this tool" aria-hidden="true">
+    <div class="flex items-center justify-between px-5 h-16 border-b border-slate-800 shrink-0">
+      <h2 class="text-sm font-bold text-white">About this tool</h2>
+      <button type="button" id="drawerClose" aria-label="Close panel" class="text-slate-400 hover:text-white text-2xl leading-none px-2">&times;</button>
+    </div>
+    <div class="p-5 space-y-6">
+      <div class="flex items-start gap-3">
+        <span class="hero-credit-av w-12 h-12 rounded-full grid place-items-center font-bold text-white shrink-0" style="background:#0f766e" data-author-initials>TS</span>
+        <div>
+          <div class="text-base font-bold text-white" data-author-name>T Chiranjeevi Srinidhi</div>
+          <div id="drawerHeadline" class="text-xs text-slate-400 mt-0.5"></div>
+        </div>
+      </div>
+      <p id="drawerBio" class="text-sm text-slate-300 leading-relaxed"></p>
+      <p class="text-sm text-slate-300 leading-relaxed">Designed and built by <strong class="text-slate-100" data-author-name>T Chiranjeevi Srinidhi</strong>.</p>
+      <div id="drawerLinks" class="space-y-2"></div>
+      <div id="visitsBlock" class="hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+        <div class="text-xs text-slate-400">Total visits to this tool</div>
+        <div id="visitCount" class="text-3xl font-extrabold text-white font-mono mt-1">...</div>
+        <a id="visitDash" class="hidden text-xs text-brand-400 hover:underline mt-2 inline-block" target="_blank" rel="noopener">Full visitor statistics</a>
+      </div>
+      <p class="text-[11px] text-slate-500 leading-relaxed">For planning illustrations only. Not investment, tax or financial advice.</p>
+    </div>
+  </aside>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-brand-500/40 text-brand-300 px-4 py-3 rounded-xl font-mono text-xs shadow-2xl flex items-center gap-2.5 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -197,21 +266,17 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-    <!-- Primary Grid: Controls (5 cols) vs Solvers & Visualization (7 cols) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <!-- Step 1: inputs -->
+    <div class="band" style="margin-bottom:-1.25rem"><span class="step-no" style="background:#4f46e5">1</span>
+      <div><h2>Your inputs</h2><p>Change anything here. Everything under Your results updates instantly.</p></div></div>
+    <div class="space-y-10">
       
       <!-- ========================================================================= -->
       <!-- LEFT COLUMN: INPUT CONTROLS                                               -->
       <!-- ========================================================================= -->
-      <section class="lg:col-span-5 bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
+      <section id="inputs" class="rounded-2xl border border-slate-800 p-6">
         
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-            Lifecycle Engineering Parameters
-          </h2>
-          <span class="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">Reverse Solver Active</span>
-        </div>
+        <div class="input-masonry">
 
         <!-- 1. AGE & HORIZON CLUSTER -->
         <div class="space-y-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
@@ -402,15 +467,35 @@
           </div>
         </div>
 
+      
+        <!-- 5. HOLDINGS BY ASSET -->
+        <div class="space-y-3 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>5. Your Holdings by Asset</span>
+            <label class="flex items-center gap-2 text-[11px] font-normal text-slate-300 cursor-pointer">
+              <input type="checkbox" id="mixToggle" checked class="accent-emerald-500"> Use holdings
+            </label>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">For each asset enter what you hold today, what you add every month, its expected return and how much that monthly amount rises each year. The planner grows each one separately, subtracts the total from the corpus you need, and shows how much more you still have to save.</p>
+          <div id="assetRows" class="space-y-3"></div>
+          <div class="flex items-start justify-between gap-3">
+            <button type="button" id="addAssetBtn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 border border-slate-700 shrink-0">Add asset</button>
+            <span id="mixTotals" class="text-[11px] font-mono text-slate-400 text-right leading-relaxed"></span>
+          </div>
+        </div>
+
+      </div>
       </section>
 
       <!-- ========================================================================= -->
       <!-- RIGHT COLUMN: REVERSE SOLVER KPIS & VISUALIZATIONS                        -->
       <!-- ========================================================================= -->
-      <section class="lg:col-span-7 space-y-6">
+      <div class="band" style="margin-bottom:-1.25rem"><span class="step-no" style="background:#0f766e">2</span>
+        <div><h2>Your results</h2><p>What your inputs add up to: the corpus you need, what your assets reach, and how much more to save.</p></div></div>
+      <section id="results" class="space-y-6">
 
         <!-- Reverse Solver Primary KPI Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 kpi-wrap pt-4">
           
           <!-- Card 1: Forward-Inflated Living Expense at Retirement -->
           <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2 relative overflow-hidden">
@@ -527,6 +612,18 @@
 
       </section>
     </div>
+
+    <!-- ASSET-WISE OUTCOME -->
+    <section class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 space-y-4">
+      <div class="border-b border-slate-800 pb-4">
+        <h3 class="text-sm font-bold text-slate-200">Asset-wise projection and extra SIP needed</h3>
+        <p class="text-xs text-slate-400">What each asset grows to on your current plan, and how much more you still need to save to reach your retirement corpus.</p>
+      </div>
+      <div id="assetOutcomeWrap" class="overflow-x-auto"></div>
+    </section>
+
+    <div id="analysis" class="band pt-4"><span class="step-no" style="background:#475569">3</span>
+      <div><h2>Deeper analysis</h2><p>How fast money and costs double, how the plan holds up under stress, and the full year-by-year ledger.</p></div></div>
 
     <!-- SECTION 2: RULE OF 72 & DOUBLING TIMES DEEP DIVE -->
     <section class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-5">
@@ -659,8 +756,8 @@
 
   <!-- Global Footer -->
   <footer class="border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500 font-mono space-y-1">
-    <p class="text-slate-300">OmniLifecycle Engine. Designed and built by <strong data-author-name>Your Name</strong>.</p>
-    <p class="text-[11px] text-slate-600">&copy; <span id="yearNow">2026</span> <span data-author-name>Your Name</span>. For planning illustrations only. Not investment, tax or financial advice; returns and inflation are assumptions, not guarantees.</p>
+    <p class="text-slate-300">OmniLifecycle Engine. Designed and built by <strong data-author-name>T Chiranjeevi Srinidhi</strong>.</p>
+    <p class="text-[11px] text-slate-600">&copy; <span id="yearNow">2026</span> <span data-author-name>T Chiranjeevi Srinidhi</span>. For planning illustrations only. Not investment, tax or financial advice; returns and inflation are assumptions, not guarantees.</p>
   </footer>
 
   <script>
@@ -669,6 +766,12 @@
      * ========================================================================= */
     /* ---- Authorship: edit these two values ---- */
     const AUTHOR = { name: 'T Chiranjeevi Srinidhi', url: '' };
+    /* ---- Your details for the About panel (leave any field empty to hide it) ---- */
+    const ABOUT = { headline: '', bio: '', email: '', linkedin: '', website: '', blogUrl: '' };
+    /* ---- Visit counter: your free GoatCounter code, e.g. 'srinidhi' (empty = no counter) ---- */
+    const SITE = { goatCounter: '', publicDashboard: false };
+    /* ---- Side panel: opens when the mouse reaches this screen edge ('right' or 'left') ---- */
+    const PANEL = { side: 'right', hoverOpen: true };
 
     const state = {
       currency: '₹',
@@ -795,33 +898,30 @@
         ? (retYear1AnnualExp / 12) * (1 + monthlyRoiRet) * (roiRet / monthlyRoiRet) / (roiRet - infRet)
         : Infinity;
 
-      // STEP 3: Lumpsum Compounding & Net Accumulation Deficit
-      const fvLumpsum = lumpsum0 * Math.pow(1 + roiAcc, tAcc);
+      // STEP 3: Grow each asset on its own return and step-up; solve the rest as new savings
+      const A = getAccAssets((overrideParams.roiAcc ?? state.roiAcc) - state.roiAcc);
+      const fac = (r, step) => {
+        let f = 0;
+        for (let y = 1; y <= tAcc; y++) {
+          const sm = Math.pow(1 + step, y - 1);
+          for (let m = 1; m <= 12; m++) f += sm * Math.pow(1 + r, ((tAcc - y) * 12 + (12 - m + 1)) / 12);
+        }
+        return f;
+      };
+      const assetProj = A.map(x => x.bal * Math.pow(1 + x.r, tAcc) + x.sip * fac(x.r, x.step));
+      const fvLumpsum = assetProj.reduce((t, v) => t + v, 0);
       const netDeficit = Math.max(0, targetCorpus - fvLumpsum);
 
-      // Hybrid Split: Portion funded by additional lumpsum today vs monthly SIP
+      // New savings (beyond the assets above) use the Accumulation ROI and Annual SIP Step-Up
+      const growthMult = Math.pow(1 + roiAcc, tAcc);
+      const stepUpFactor = fac(roiAcc, stepUpRate);
+      const flatSipFactor = fac(roiAcc, 0);
       const extraLumpsumGap = netDeficit * hybridPct;
       const sipGap = netDeficit * (1 - hybridPct);
-      const additionalLumpToday = extraLumpsumGap / Math.pow(1 + roiAcc, tAcc);
-
-      // Solve for Required Starting Monthly SIP (with annual step-up)
-      const monthlyRoiAcc = Math.pow(1 + roiAcc, 1 / 12) - 1;
-      let stepUpFactor = 0;
-      let flatSipFactor = 0;
-
-      for (let y = 1; y <= tAcc; y++) {
-        const yearStepMult = Math.pow(1 + stepUpRate, y - 1);
-        for (let m = 1; m <= 12; m++) {
-          const monthsRemaining = (tAcc - y) * 12 + (12 - m + 1);
-          const compoundGrowth = Math.pow(1 + monthlyRoiAcc, monthsRemaining);
-          stepUpFactor += yearStepMult * compoundGrowth;
-          flatSipFactor += compoundGrowth;
-        }
-      }
-
+      const additionalLumpToday = extraLumpsumGap / growthMult;
       const requiredStartingStepUpSip = sipGap > 0 ? (sipGap / stepUpFactor) : 0;
       const requiredFlatSip = sipGap > 0 ? (sipGap / flatSipFactor) : 0;
-      const pureLumpNeededToday = netDeficit / Math.pow(1 + roiAcc, tAcc);
+      const pureLumpNeededToday = netDeficit / growthMult;
 
       // STEP 4: Rule of 72 & Doubling Times Analytics
       const exactCapitalDoublingTime = roiAcc > 0 ? (Math.log(2) / Math.log(1 + roiAcc)) : Infinity;
@@ -840,7 +940,7 @@
       return {
         currAge, retAge, lifeExp, tAcc, tRet,
         monthlyExp0, retYear1MonthlyExp, retYear1AnnualExp, expenseInflationFactor,
-        targetCorpus, perpetualCorpus, fvLumpsum, netDeficit,
+        targetCorpus, perpetualCorpus, fvLumpsum, netDeficit, assetProj, A,
         requiredStartingStepUpSip, requiredFlatSip, additionalLumpToday, pureLumpNeededToday,
         exactCapitalDoublingTime, heuristicRule72Years, rule72Variance,
         accumulationDoublingCycles, wealthMultiplier,
@@ -853,93 +953,60 @@
      * ========================================================================= */
     function generateLifecycleSchedule(calc) {
       const schedule = [];
-      const totalMonthsAcc = calc.tAcc * 12;
-      const monthlyRoiAcc = Math.pow(1 + state.roiAcc / 100, 1 / 12) - 1;
-      const monthlyRoiRet = Math.pow(1 + state.roiRet / 100, 1 / 12) - 1;
+      const sum = arr => arr.reduce((x, y) => x + y, 0);
+      const A = getAccAssets(0);
+      const qA = A.map(x => Math.pow(1 + x.r, 1 / 12) - 1);
+      const qx = Math.pow(1 + state.roiAcc / 100, 1 / 12) - 1;
+      const qRet = Math.pow(1 + state.roiRet / 100, 1 / 12) - 1;
       const stepUp = state.stepUpPct / 100;
       const infRet = state.infRet / 100;
-
-      let currentBalance = state.existingLumpsum + calc.additionalLumpToday;
-      let cumulativeInvested = currentBalance;
+      let bal = A.map(x => x.bal);
+      let xbal = calc.additionalLumpToday;
+      let cumulativeInvested = sum(bal) + xbal;
       let cumulativeWithdrawn = 0;
-      let currentMonthlySip = calc.requiredStartingStepUpSip;
 
-      // ACCUMULATION PHASE (Year 1 to tAcc)
       for (let y = 1; y <= calc.tAcc; y++) {
-        const age = state.currentAge + y;
-        const opening = currentBalance;
-        let yearInflow = 0;
-        let yearGrowth = 0;
-
-        if (y > 1) {
-          currentMonthlySip = currentMonthlySip * (1 + stepUp);
-        }
-
+        const opening = sum(bal) + xbal;
+        let inflow = 0;
         for (let m = 1; m <= 12; m++) {
-          currentBalance += currentMonthlySip;
-          yearInflow += currentMonthlySip;
-          cumulativeInvested += currentMonthlySip;
-
-          const growth = currentBalance * monthlyRoiAcc;
-          currentBalance += growth;
-          yearGrowth += growth;
+          bal = bal.map((v, i) => {
+            const c = A[i].sip * Math.pow(1 + A[i].step, y - 1);
+            inflow += c;
+            return (v + c) * (1 + qA[i]);
+          });
+          const cx = calc.requiredStartingStepUpSip * Math.pow(1 + stepUp, y - 1);
+          inflow += cx;
+          xbal = (xbal + cx) * (1 + qx);
         }
-
-        // Calculate purchasing power relative to current year
-        const cumulativeInflationAcc = Math.pow(1 + (state.infAcc / 100), y);
-        const realPurchasingPower = currentBalance / cumulativeInflationAcc;
-
+        cumulativeInvested += inflow;
+        const closing = sum(bal) + xbal;
         schedule.push({
-          year: y,
-          age: age,
-          phase: 'Accumulation',
-          opening: opening,
-          inflowOutflow: yearInflow,
-          growth: yearGrowth,
-          closing: currentBalance,
-          realValue: realPurchasingPower,
-          cumulativeInvested: cumulativeInvested,
-          cumulativeWithdrawn: 0
+          year: y, age: state.currentAge + y, phase: 'Accumulation',
+          opening, inflowOutflow: inflow, growth: closing - opening - inflow, closing,
+          realValue: closing / Math.pow(1 + state.infAcc / 100, y),
+          cumulativeInvested, cumulativeWithdrawn: 0
         });
       }
 
-      // DECUMULATION PHASE (Year tAcc + 1 to tAcc + tRet)
+      let total = sum(bal) + xbal;
       for (let y = 1; y <= calc.tRet; y++) {
-        const age = state.retireAge + y;
-        const opening = currentBalance;
-        let yearOutflow = 0;
-        let yearGrowth = 0;
-        const currentMonthlyDraw = (calc.retYear1AnnualExp * Math.pow(1 + infRet, y - 1)) / 12;
-
+        const opening = total;
+        const draw = (calc.retYear1AnnualExp * Math.pow(1 + infRet, y - 1)) / 12;
+        let out = 0, growth = 0;
         for (let m = 1; m <= 12; m++) {
-          const draw = Math.min(currentBalance, currentMonthlyDraw);
-          currentBalance -= draw;
-          yearOutflow += draw;
-          cumulativeWithdrawn += draw;
-
-          const growth = currentBalance * monthlyRoiRet;
-          currentBalance += growth;
-          yearGrowth += growth;
+          const d = Math.min(total, draw);
+          total -= d; out += d; cumulativeWithdrawn += d;
+          const g = total * qRet;
+          total += g; growth += g;
         }
-
-        const totalElapsedYears = calc.tAcc + y;
-        const cumulativeInflationOverall = Math.pow(1 + (state.infAcc / 100), calc.tAcc) * Math.pow(1 + (state.infRet / 100), y);
-        const realPurchasingPower = Math.max(0, currentBalance) / cumulativeInflationOverall;
-
+        const infl = Math.pow(1 + state.infAcc / 100, calc.tAcc) * Math.pow(1 + infRet, y);
         schedule.push({
-          year: calc.tAcc + y,
-          age: age,
-          phase: 'Decumulation (SWP)',
-          opening: opening,
-          inflowOutflow: -yearOutflow,
-          growth: yearGrowth,
-          closing: Math.max(0, currentBalance),
-          realValue: realPurchasingPower,
-          cumulativeInvested: cumulativeInvested,
-          cumulativeWithdrawn: cumulativeWithdrawn
+          year: calc.tAcc + y, age: state.retireAge + y, phase: 'Decumulation (SWP)',
+          opening, inflowOutflow: -out, growth, closing: Math.max(0, total),
+          realValue: Math.max(0, total) / infl,
+          cumulativeInvested, cumulativeWithdrawn
         });
       }
-
       return schedule;
     }
 
@@ -1039,6 +1106,7 @@
      * UI SYNC, LEDGER, SENSITIVITY TABLE, AND CSV
      * ========================================================================= */
     function updateDashboard() {
+      syncMix();
       // Age validation check
       if (state.retireAge <= state.currentAge) {
         state.retireAge = state.currentAge + 1;
@@ -1071,7 +1139,7 @@
       document.getElementById('roiAccEcho1').textContent = `${state.roiAcc.toFixed(1)}%`;
       document.getElementById('infAccEcho1').textContent = `${state.infAcc.toFixed(1)}%`;
       document.getElementById('baseExpenseEcho').textContent = formatCurrency(state.currentMonthlyExpense);
-      document.getElementById('lumpBaseEcho').textContent = formatCurrency(state.existingLumpsum);
+      document.getElementById('lumpBaseEcho').textContent = formatCurrency(state.existingLumpsum) + (state.useMix && sumOf(state.assets, 'sip') > 0 ? ` + ${formatCurrency(sumOf(state.assets, 'sip'))}/mo` : '');
       document.getElementById('stepUpEchoBadge').textContent = `+${state.stepUpPct}% annual step-up`;
 
       document.getElementById('chartAgeStart').textContent = state.currentAge;
@@ -1134,6 +1202,8 @@
       renderMountainTopChart(schedule, calc);
       renderSensitivityMatrix();
       renderLifecycleLedger(schedule);
+      renderAssetOutcome(schedule, calc);
+      updateSummaryBar(calc);
     }
 
     function renderSensitivityMatrix() {
@@ -1221,11 +1291,22 @@
       state.ledgerSchedule.forEach(r => {
         csv += `${r.age},${r.phase},${r.opening.toFixed(2)},${r.inflowOutflow.toFixed(2)},${r.growth.toFixed(2)},${r.closing.toFixed(2)},${r.realValue.toFixed(2)}\n`;
       });
+      const filename = `Lifecycle_Ledger_${Date.now()}.csv`;
+      if (window.claude && window.claude.use) {
+        // Hosted page: hand the file to the viewer through the downloads capability
+        window.claude.use('downloads').then(dl => {
+          if (!dl) return showToast('Export is not available in this view');
+          return dl.save({ filename, data: csv })
+            .then(() => showToast('Lifecycle Ledger exported to CSV!'))
+            .catch(err => { if (!err || err.code !== 'declined') showToast('Export could not be saved'); });
+        });
+        return;
+      }
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Lifecycle_Ledger_${Date.now()}.csv`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1387,8 +1468,232 @@
       });
     });
 
+    /* =========================================================================
+     * HOLDINGS BY ASSET: balance, monthly contribution, return and yearly step-up
+     * ========================================================================= */
+    state.useMix = true;
+    // Placeholder amounts: replace with your own
+    state.assets = [
+      { name: 'Provident Fund (PF)', bal: 400000, sip: 5000, roi: 8.25, step: 5 },
+      { name: 'Bonds', bal: 100000, sip: 0, roi: 6, step: 0 },
+      { name: 'Mutual Funds', bal: 300000, sip: 5000, roi: 13.5, step: 5 },
+      { name: 'Stocks', bal: 200000, sip: 0, roi: 15, step: 0 }
+    ];
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const sumOf = (arr, k) => arr.reduce((t, a) => t + (a[k] || 0), 0);
+
+    // One entry per asset: {r: annual return, step: yearly increase in monthly amount, bal, sip}
+    function getAccAssets(delta) {
+      if (!state.useMix) return [{ r: (state.roiAcc + delta) / 100, step: state.stepUpPct / 100, bal: state.existingLumpsum, sip: 0 }];
+      return state.assets.map(a => ({ r: (a.roi + delta) / 100, step: a.step / 100, bal: a.bal, sip: a.sip }));
+    }
+    function syncMix() {
+      const tb = sumOf(state.assets, 'bal'), ts = sumOf(state.assets, 'sip');
+      if (state.useMix) {
+        state.existingLumpsum = tb;
+        document.getElementById('lumpExistingInput').value = Math.round(tb);
+        document.getElementById('lumpExistingSlider').value = tb;
+      }
+      ['lumpExistingInput', 'lumpExistingSlider'].forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = state.useMix;
+        el.style.opacity = state.useMix ? '0.5' : '1';
+      });
+      document.getElementById('mixTotals').innerHTML = state.useMix
+        ? `Held today ${formatCurrency(tb)}<br>Added monthly ${formatCurrency(ts)}<br>Anything still missing is new savings at the Accumulation ROI (${state.roiAcc.toFixed(2)}%) and Annual SIP Step-Up (${state.stepUpPct}%) set above`
+        : 'Single lump sum and return rate in use';
+    }
+    function renderAssetInputs() {
+      const box = document.getElementById('assetRows');
+      box.innerHTML = '';
+      const field = (i, f, label, val, step) => `<div><label class="block text-[10px] text-slate-400 mb-0.5">${label}</label>
+        <input type="number" min="0" step="${step}" data-i="${i}" data-f="${f}" value="${val}" class="w-full bg-slate-800 text-slate-100 font-mono text-right text-xs py-1 px-1.5 rounded border border-slate-700"></div>`;
+      state.assets.forEach((a, i) => {
+        const d = document.createElement('div');
+        d.className = 'p-3 rounded-lg border border-slate-800 bg-slate-900/60 space-y-2';
+        d.innerHTML = `<div class="flex items-center gap-2">
+            <input type="text" data-i="${i}" data-f="name" value="${esc(a.name)}" aria-label="Asset name" class="flex-1 bg-slate-800 text-slate-100 text-xs font-semibold py-1 px-2 rounded border border-slate-700">
+            <button type="button" data-del="${i}" aria-label="Remove ${esc(a.name)}" class="text-slate-500 hover:text-rose-400 px-1.5 text-base leading-none">&times;</button></div>
+          <div class="grid grid-cols-2 gap-2">
+            ${field(i, 'bal', 'Held today (lump sum)', a.bal, 10000)}${field(i, 'sip', 'Added monthly (SIP)', a.sip, 500)}
+            ${field(i, 'roi', 'Return % a year', a.roi, 0.05)}${field(i, 'step', 'Annual step-up %', a.step, 1)}
+          </div>`;
+        box.appendChild(d);
+      });
+    }
+    function initAssetMix() {
+      renderAssetInputs();
+      const box = document.getElementById('assetRows');
+      box.addEventListener('input', e => {
+        const t = e.target, i = +t.dataset.i, f = t.dataset.f;
+        if (!f) return;
+        if (f === 'name') state.assets[i].name = t.value;
+        else { const v = parseFloat(t.value); state.assets[i][f] = isNaN(v) ? 0 : Math.max(0, v); }
+        updateDashboard();
+      });
+      box.addEventListener('click', e => {
+        const b = e.target.closest('[data-del]');
+        if (!b || state.assets.length <= 1) return;
+        state.assets.splice(+b.dataset.del, 1);
+        renderAssetInputs();
+        updateDashboard();
+      });
+      document.getElementById('addAssetBtn').addEventListener('click', () => {
+        if (state.assets.length >= 8) return showToast('Maximum of 8 assets');
+        state.assets.push({ name: 'New asset', bal: 0, sip: 0, roi: 8, step: 0 });
+        renderAssetInputs();
+        updateDashboard();
+      });
+      document.getElementById('mixToggle').addEventListener('change', e => {
+        state.useMix = e.target.checked;
+        updateDashboard();
+      });
+    }
+    function renderAssetOutcome(schedule, calc) {
+      const wrap = document.getElementById('assetOutcomeWrap');
+      if (!state.useMix) {
+        wrap.innerHTML = '<p class="text-xs text-slate-400">Turn on "Use holdings" to enter your assets and see the figures for each one.</p>';
+        return;
+      }
+      const peak = schedule[calc.tAcc - 1], last = schedule[schedule.length - 1];
+      const line = (l, v, c) => `<div class="flex justify-between gap-4 ${c || 'text-slate-300'}"><span class="font-sans">${l}</span><span>${v}</span></div>`;
+      let wf = line(`Goal corpus needed at age ${state.retireAge}`, formatCurrency(calc.targetCorpus), 'text-slate-100 font-bold');
+      state.assets.forEach((a, i) => {
+        if (calc.assetProj[i] > 0) wf += line(`less: ${esc(a.name)} grows to`, '- ' + formatCurrency(calc.assetProj[i]), 'text-brand-300');
+      });
+      if (calc.netDeficit > 0) {
+        wf += `<div class="border-t border-slate-700 pt-1.5">` + line('Still to save for', formatCurrency(calc.netDeficit), 'text-amber-300 font-bold') + `</div>`;
+        wf += `<div class="pt-3 text-slate-400 font-sans">To get there, save extra every month (rising ${state.stepUpPct}% a year):</div>`;
+        if (calc.requiredStartingStepUpSip > 0) wf += line('Extra monthly amount, starting now', formatCurrency(calc.requiredStartingStepUpSip), 'text-accent-400 font-bold');
+        if (calc.additionalLumpToday > 0) wf += line('plus one-time amount today', formatCurrency(calc.additionalLumpToday), 'text-accent-400');
+        wf += `<div class="pt-2 text-slate-500 font-sans">Or skip the monthly amount and invest ${formatCurrency(calc.pureLumpNeededToday)} once, today, at the same return.</div>`;
+      } else {
+        wf += `<div class="border-t border-slate-700 pt-1.5">` + line('Surplus over goal', formatCurrency(calc.fvLumpsum - calc.targetCorpus), 'text-brand-300 font-bold') + `</div>`;
+      }
+      const th = 'py-3 px-4 text-right font-medium';
+      let rows = '';
+      state.assets.forEach((a, i) => {
+        rows += `<tr class="hover:bg-slate-800/40 text-slate-300">
+          <td class="py-3 px-4 font-bold text-slate-100 font-sans">${esc(a.name)}</td>
+          <td class="py-3 px-4 text-right">${formatCurrency(a.bal)}</td>
+          <td class="py-3 px-4 text-right">${formatCurrency(a.sip)}</td>
+          <td class="py-3 px-4 text-right">${a.step}%</td>
+          <td class="py-3 px-4 text-right">${a.roi.toFixed(2)}%</td>
+          <td class="py-3 px-4 text-right text-brand-300 font-bold">${formatCurrency(calc.assetProj[i])}</td></tr>`;
+      });
+      if (calc.netDeficit > 0) {
+        rows += `<tr class="text-slate-300"><td class="py-3 px-4 font-bold text-accent-400 font-sans">Extra savings needed</td>
+          <td class="py-3 px-4 text-right">${formatCurrency(calc.additionalLumpToday)}</td>
+          <td class="py-3 px-4 text-right">${formatCurrency(calc.requiredStartingStepUpSip)}</td>
+          <td class="py-3 px-4 text-right">${state.stepUpPct}%</td>
+          <td class="py-3 px-4 text-right">${state.roiAcc.toFixed(2)}%</td>
+          <td class="py-3 px-4 text-right text-accent-400 font-bold">${formatCurrency(calc.netDeficit)}</td></tr>`;
+      }
+      rows += `<tr class="bg-slate-800/40 text-white font-bold"><td class="py-3 px-4 font-sans">Total at age ${state.retireAge}</td>
+        <td class="py-3 px-4 text-right">${formatCurrency(sumOf(state.assets, 'bal') + calc.additionalLumpToday)}</td>
+        <td class="py-3 px-4 text-right">${formatCurrency(sumOf(state.assets, 'sip') + calc.requiredStartingStepUpSip)}</td>
+        <td class="py-3 px-4"></td><td class="py-3 px-4"></td>
+        <td class="py-3 px-4 text-right">${formatCurrency(peak.closing)}</td></tr>`;
+      wrap.innerHTML = `<div class="rounded-xl border border-slate-800 bg-slate-950/60 p-4 mb-5 max-w-xl text-xs font-mono space-y-1.5">${wf}</div>
+        <table class="w-full text-left border-collapse text-xs"><thead><tr class="border-b border-slate-800 text-slate-400 font-mono text-[11px] bg-slate-800/40">
+        <th class="py-3 px-4 font-sans font-medium">Asset</th><th class="${th}">Held today</th><th class="${th}">Added monthly</th><th class="${th}">Step-up</th><th class="${th}">Return</th>
+        <th class="${th}">Grows to by age ${state.retireAge}</th></tr></thead>
+        <tbody class="divide-y divide-slate-800/60 font-mono">${rows}</tbody></table>
+        <p class="text-[11px] text-slate-500 mt-3">Each asset grows on its own return, and its monthly amount rises by its own yearly step-up. After retirement the whole corpus is drawn down as one pool at the Decumulation ROI, and the corpus left at age ${last.age} is ${formatCurrency(last.closing)}. See the ledger for the year-by-year path.</p>`;
+    }
+
+    function updateSummaryBar(calc) {
+      const pct = calc.targetCorpus > 0 ? Math.min(100, calc.fvLumpsum / calc.targetCorpus * 100) : 100;
+      document.getElementById('sbCorpus').textContent = formatCurrency(calc.targetCorpus);
+      document.getElementById('sbProj').textContent = formatCurrency(calc.fvLumpsum);
+      document.getElementById('sbPct').textContent = `(${pct.toFixed(0)}% of goal)`;
+      document.getElementById('sbSip').textContent = calc.netDeficit <= 0 ? 'Nothing more needed'
+        : (calc.requiredStartingStepUpSip > 0 ? formatCurrency(calc.requiredStartingStepUpSip) + ' a month' : formatCurrency(calc.additionalLumpToday) + ' once, today');
+    }
+
+    function initDrawer() {
+      const d = document.getElementById('sideDrawer'), ov = document.getElementById('drawerOv'), handle = document.getElementById('edgeHandle');
+      const side = PANEL.side === 'left' ? 'left' : 'right';
+      d.classList.toggle('left', side === 'left'); handle.classList.toggle('left', side === 'left');
+      let mode = '', openT = null, closeT = null;
+      const isOpen = () => d.classList.contains('open');
+      const setOpen = (v, how) => {
+        clearTimeout(openT); clearTimeout(closeT); openT = closeT = null;
+        if (v === isOpen()) return;
+        d.classList.toggle('open', v);
+        ov.classList.toggle('open', v && how !== 'hover');
+        handle.setAttribute('aria-expanded', v); d.setAttribute('aria-hidden', !v);
+        handle.style.display = v ? 'none' : '';
+        mode = v ? how : '';
+        if (v && how !== 'hover') document.getElementById('drawerClose').focus();
+        if (!v && how !== 'hover') handle.focus();
+      };
+      handle.addEventListener('click', () => setOpen(true, 'click'));
+      document.getElementById('drawerClose').addEventListener('click', () => setOpen(false, 'click'));
+      ov.addEventListener('click', () => setOpen(false, 'click'));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) setOpen(false, 'click'); });
+      // Using the panel (click inside) keeps it open; clicking outside closes it
+      d.addEventListener('pointerdown', () => { if (isOpen()) { mode = 'click'; clearTimeout(closeT); closeT = null; } });
+      document.addEventListener('pointerdown', e => {
+        if (isOpen() && mode === 'click' && !d.contains(e.target)) setOpen(false, 'click');
+      });
+
+      // Open when the mouse reaches the edge; close when it moves away
+      const ZONE = 36;
+      const nearEdge = x => side === 'right' ? x >= window.innerWidth - ZONE : x <= ZONE;
+      if (PANEL.hoverOpen) {
+        document.addEventListener('pointermove', e => {
+          if (e.pointerType !== 'mouse') return;
+          if (!isOpen()) {
+            if (nearEdge(e.clientX) && e.buttons === 0) {
+              if (!openT) openT = setTimeout(() => { openT = null; setOpen(true, 'hover'); }, 150);
+            } else { clearTimeout(openT); openT = null; }
+          } else if (mode === 'hover') {
+            const r = d.getBoundingClientRect();
+            if ((e.clientX >= r.left && e.clientX <= r.right) || nearEdge(e.clientX)) { clearTimeout(closeT); closeT = null; }
+            else if (!closeT) closeT = setTimeout(() => { closeT = null; if (mode === 'hover') setOpen(false, 'hover'); }, 350);
+          }
+        });
+        document.documentElement.addEventListener('mouseleave', e => { if (!isOpen() && nearEdge(e.clientX)) setOpen(true, 'hover'); });
+      }
+
+      const hl = document.getElementById('drawerHeadline'), bio = document.getElementById('drawerBio');
+      hl.textContent = ABOUT.headline; hl.style.display = ABOUT.headline ? '' : 'none';
+      bio.textContent = ABOUT.bio; bio.style.display = ABOUT.bio ? '' : 'none';
+      const links = document.getElementById('drawerLinks');
+      [['Email', ABOUT.email ? 'mailto:' + ABOUT.email : '', ABOUT.email], ['LinkedIn', ABOUT.linkedin, 'Profile'], ['Website', ABOUT.website, 'Visit'], ['Back to my blog', ABOUT.blogUrl, 'Open']].forEach(([label, href, text]) => {
+        if (!href || !/^(https?:|mailto:)/i.test(href)) return;
+        const a = document.createElement('a');
+        a.href = href; a.rel = 'noopener'; if (!href.startsWith('mailto:')) a.target = '_top';
+        a.className = 'flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/70 hover:bg-slate-800 px-3 py-2 text-xs';
+        a.innerHTML = '<span class="text-slate-400">' + esc(label) + '</span><span class="text-slate-100 font-semibold">' + esc(text) + '</span>';
+        links.appendChild(a);
+      });
+
+      // Visits: GoatCounter (free). Counts a visit on load and shows the site total.
+      const code = SITE.goatCounter;
+      if (code && /^[a-z0-9-]+$/i.test(code)) {
+        const sc = document.createElement('script');
+        sc.async = true; sc.src = 'https://gc.zgo.at/count.js';
+        sc.setAttribute('data-goatcounter', 'https://' + code + '.goatcounter.com/count');
+        document.head.appendChild(sc);
+        fetch('https://' + code + '.goatcounter.com/counter/TOTAL.json')
+          .then(r => { if (!r.ok) throw new Error('off'); return r.json(); })
+          .then(j => {
+            document.getElementById('visitCount').textContent = j.count;
+            document.getElementById('visitsBlock').classList.remove('hidden');
+            if (SITE.publicDashboard) {
+              const a = document.getElementById('visitDash');
+              a.href = 'https://' + code + '.goatcounter.com'; a.classList.remove('hidden');
+            }
+          })
+          .catch(() => {});
+      }
+    }
+
     // Initial Load Execution
     window.addEventListener('DOMContentLoaded', () => {
+      initAssetMix();
       updateCurrencySymbols();
       updateDashboard();
       document.querySelectorAll('[data-author-name]').forEach(el => el.textContent = AUTHOR.name);
@@ -1400,6 +1705,7 @@
       });
       document.querySelector('meta[name="author"]').content = AUTHOR.name;
       document.getElementById('yearNow').textContent = new Date().getFullYear();
+      initDrawer();
       const rangeNames = { hybridSplitSlider: 'Lumpsum versus SIP funding split' };
       document.querySelectorAll('input[type=range]').forEach(el => {
         const lab = document.querySelector('label[for="' + el.id.replace('Slider', 'Input') + '"]');
