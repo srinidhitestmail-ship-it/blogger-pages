@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniLifecycle Engine | Wealth & Retirement Planner</title>
+  <meta name="description" content="Interactive retirement planner that works backwards from your future expenses to the corpus and monthly SIP you need.">
+  <meta name="author" content="Your Name">
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            accent: {
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+            },
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+            },
+            danger: {
+              400: '#f87171',
+              500: '#ef4444',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom sleek range sliders */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #10b981;
+      border: 2px solid #0f172a;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -6px;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #34d399;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* ---- Professional refinement layer ---- */
+    body{background:#0a0f1a;font-variant-numeric:tabular-nums;}
+    body .shadow-xl,body .shadow-lg,body .shadow-2xl{box-shadow:none;}
+    body .bg-slate-900\/90,body .bg-gradient-to-br{background:#0f1624;border-color:#1c2638;}
+    body .bg-slate-950\/60,body .bg-slate-950\/70{background:#0b111c;border-color:#1c2638;}
+    body .blur-2xl{display:none;}
+    body .animate-pulse{animation:none;}
+    body header .bg-gradient-to-tr{background:#0f766e;box-shadow:none;}
+    body .uppercase{text-transform:none;letter-spacing:0;}
+    body .tracking-wider{letter-spacing:.01em;}
+    body .text-slate-500{color:#8493a8;}
+    body .text-slate-600{color:#74839a;}
+    body .rounded-2xl{border-radius:14px;}
+    body input:focus-visible,body button:focus-visible,body a:focus-visible{outline:2px solid #34d399;outline-offset:2px;}
+    input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(52,211,153,.45);}
+    .hero-credit{display:inline-flex;align-items:center;gap:.6rem;padding:.35rem .8rem .35rem .35rem;border:1px solid #1c2638;border-radius:999px;background:#0f1624;font-size:12px;color:#aab6c8;}
+    .hero-credit .av{width:28px;height:28px;border-radius:50%;background:#0f766e;color:#fff;display:grid;place-items:center;font-weight:700;font-size:11px;}
+    @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+  </style>
+</head>
+<body class="bg-[#080d17] text-slate-100 min-h-screen font-sans selection:bg-brand-500 selection:text-slate-950 antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo & Subtitle -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-accent-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/20 flex-shrink-0">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">OmniLifecycle Engine</h1>
+            <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-brand-500/15 text-brand-400 border border-brand-500/30 font-semibold">Closed-Loop Solver</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Wealth and retirement planner, designed by <a data-author-link class="text-slate-200 hover:text-white underline underline-offset-2"><span data-author-name>Your Name</span></a></p>
+        </div>
+      </div>
+
+      <!-- Currency Selector & Notation Modes -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+          <button type="button" data-curr="₹" class="curr-btn active-curr px-2.5 py-1 text-xs font-mono font-bold rounded bg-slate-800 text-brand-400 border border-brand-500/30 transition">₹ INR</button>
+          <button type="button" data-curr="$" class="curr-btn px-2.5 py-1 text-xs font-mono font-bold rounded text-slate-400 hover:text-white transition">$ USD</button>
+          <button type="button" data-curr="€" class="curr-btn px-2.5 py-1 text-xs font-mono font-bold rounded text-slate-400 hover:text-white transition">€ EUR</button>
+          <button type="button" data-curr="£" class="curr-btn px-2.5 py-1 text-xs font-mono font-bold rounded text-slate-400 hover:text-white transition">£ GBP</button>
+        </div>
+
+        <button id="notationToggleBtn" title="Toggle Compact (Lakh/Crore or M/B) vs Full Notation" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-mono text-slate-300 border border-slate-800 transition">
+          <span class="text-slate-500">Format:</span>
+          <span id="notationLabel" class="text-brand-400 font-semibold">Compact (Cr/L)</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-1">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
+      <div class="max-w-2xl">
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Start from the retirement you want, and work back to what to save today.</h2>
+        <p class="mt-2 text-sm text-slate-400 leading-relaxed">Enter your expenses, ages and expected returns. The planner inflates your costs to retirement, sizes the corpus that funds them to your life expectancy, and solves for the monthly SIP that gets you there.</p>
+      </div>
+      <div class="hero-credit shrink-0"><span class="av" data-author-initials>YN</span><span>Designed and built by <strong class="text-slate-100" data-author-name>Your Name</strong></span></div>
+    </div>
+  </section>
+
+  <!-- Archetype Presets Bar -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+    <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-3 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          Quick Archetypes:
+        </span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" data-preset="young" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 hover:border-slate-500 transition">
+          Young Professional <span class="font-mono text-slate-400 text-[11px]">(Age 28 ➔ 55)</span>
+        </button>
+        <button type="button" data-preset="fire" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 hover:border-slate-500 transition">
+          Early FIRE <span class="font-mono text-slate-400 text-[11px]">(Age 32 ➔ 48)</span>
+        </button>
+        <button type="button" data-preset="traditional" class="preset-btn px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 hover:border-slate-500 transition">
+          Traditional Retirement <span class="font-mono text-slate-400 text-[11px]">(Age 35 ➔ 60)</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-brand-500/40 text-brand-300 px-4 py-3 rounded-xl font-mono text-xs shadow-2xl flex items-center gap-2.5 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toastMsg">Configuration loaded</span>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <!-- Primary Grid: Controls (5 cols) vs Solvers & Visualization (7 cols) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- ========================================================================= -->
+      <!-- LEFT COLUMN: INPUT CONTROLS                                               -->
+      <!-- ========================================================================= -->
+      <section class="lg:col-span-5 bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+            Lifecycle Engineering Parameters
+          </h2>
+          <span class="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded border border-brand-500/20">Reverse Solver Active</span>
+        </div>
+
+        <!-- 1. AGE & HORIZON CLUSTER -->
+        <div class="space-y-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>1. Lifecycle Horizon & Ages</span>
+            <div class="flex items-center gap-2 font-mono text-[11px]">
+              <span class="text-brand-400">Acc: <strong id="accYearsBadge">25 yrs</strong></span>
+              <span class="text-slate-500">•</span>
+              <span class="text-amber-400">Ret: <strong id="retYearsBadge">30 yrs</strong></span>
+            </div>
+          </div>
+
+          <!-- Age Inputs Row -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label for="currAgeInput" class="text-[11px] text-slate-400 block mb-1">Present Age</label>
+              <input type="number" id="currAgeInput" min="18" max="75" value="30" class="w-full bg-slate-800 text-slate-100 font-mono font-bold text-center py-1.5 rounded-lg border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
+            </div>
+            <div>
+              <label for="retireAgeInput" class="text-[11px] text-slate-400 block mb-1">Retirement Age</label>
+              <input type="number" id="retireAgeInput" min="25" max="80" value="55" class="w-full bg-slate-800 text-brand-400 font-mono font-bold text-center py-1.5 rounded-lg border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
+            </div>
+            <div>
+              <label for="lifeExpInput" class="text-[11px] text-slate-400 block mb-1">Life Expectancy</label>
+              <input type="number" id="lifeExpInput" min="50" max="100" value="85" class="w-full bg-slate-800 text-amber-400 font-mono font-bold text-center py-1.5 rounded-lg border border-slate-700 focus:border-brand-500 text-sm outline-none transition">
+            </div>
+          </div>
+
+          <!-- Present Age Slider -->
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
+              <span>Current Age Slider</span>
+              <span id="currAgeDisplay" class="text-slate-200 font-bold">30 yrs</span>
+            </div>
+            <input type="range" id="currAgeSlider" min="18" max="65" value="30" class="w-full h-2">
+          </div>
+
+          <!-- Retirement Age Slider -->
+          <div>
+            <div class="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
+              <span>Retirement Age Slider</span>
+              <span id="retireAgeDisplay" class="text-brand-400 font-bold">55 yrs</span>
+            </div>
+            <input type="range" id="retireAgeSlider" min="30" max="75" value="55" class="w-full h-2">
+          </div>
+        </div>
+
+        <!-- 2. EXPENSES & INFLATION PAIR -->
+        <div class="space-y-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>2. Living Expenses & Dual-Phase Inflation</span>
+            <span class="text-[11px] font-mono text-slate-400">Monthly</span>
+          </div>
+
+          <!-- Current Monthly Expenses -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center">
+              <label for="expenseMonthlyInput" class="text-xs text-slate-300">Current Monthly Expense</label>
+              <div class="relative">
+                <span class="curr-symbol absolute left-2.5 top-1.5 text-slate-400 font-mono text-xs">₹</span>
+                <input type="number" id="expenseMonthlyInput" min="5000" max="10000000" step="1000" value="50000" class="w-32 bg-slate-800 text-white font-mono font-bold text-right pl-6 pr-2.5 py-1.5 rounded-lg border border-slate-700 focus:border-brand-500 text-xs outline-none transition">
+              </div>
+            </div>
+            <input type="range" id="expenseMonthlySlider" min="10000" max="300000" step="2000" value="50000" class="w-full h-2">
+            <div class="flex justify-between text-[10px] font-mono text-slate-500">
+              <span class="min-exp-lbl">₹10k</span>
+              <span class="mid-exp-lbl">₹150k</span>
+              <span class="max-exp-lbl">₹300k</span>
+            </div>
+          </div>
+
+          <!-- Dual Inflation Rates: Pre & Post Retirement -->
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label for="infAccInput" class="text-[11px] text-slate-300">Pre-Ret. Inflation</label>
+                <div class="flex items-center">
+                  <input type="number" id="infAccInput" min="1" max="15" step="0.1" value="6.0" class="w-14 bg-slate-800 text-amber-400 font-mono text-right text-xs py-1 px-1.5 rounded border border-slate-700 outline-none">
+                  <span class="text-[11px] font-mono text-slate-400 ml-0.5">%</span>
+                </div>
+              </div>
+              <input type="range" id="infAccSlider" min="2" max="12" step="0.1" value="6" class="w-full h-1.5">
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label for="infRetInput" class="text-[11px] text-slate-300">Post-Ret. Inflation</label>
+                <div class="flex items-center">
+                  <input type="number" id="infRetInput" min="1" max="15" step="0.1" value="6.0" class="w-14 bg-slate-800 text-amber-400 font-mono text-right text-xs py-1 px-1.5 rounded border border-slate-700 outline-none">
+                  <span class="text-[11px] font-mono text-slate-400 ml-0.5">%</span>
+                </div>
+              </div>
+              <input type="range" id="infRetSlider" min="2" max="12" step="0.1" value="6" class="w-full h-1.5">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. EXPECTED RETURNS (GLIDEPATH) -->
+        <div class="space-y-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>3. Expected Returns (Lifecycle Glidepath)</span>
+            <span class="text-[11px] font-mono text-brand-400">Compounded</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label for="roiAccInput" class="text-[11px] text-slate-300">Accumulation ROI</label>
+                <div class="flex items-center">
+                  <input type="number" id="roiAccInput" min="2" max="30" step="0.1" value="12.0" class="w-14 bg-slate-800 text-brand-400 font-mono text-right text-xs py-1 px-1.5 rounded border border-slate-700 outline-none">
+                  <span class="text-[11px] font-mono text-slate-400 ml-0.5">%</span>
+                </div>
+              </div>
+              <input type="range" id="roiAccSlider" min="4" max="20" step="0.2" value="12" class="w-full h-1.5">
+              <span class="text-[10px] text-slate-500 font-mono block">Equities / Index</span>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between items-center">
+                <label for="roiRetInput" class="text-[11px] text-slate-300">Decumulation ROI</label>
+                <div class="flex items-center">
+                  <input type="number" id="roiRetInput" min="2" max="20" step="0.1" value="8.0" class="w-14 bg-slate-800 text-indigo-400 font-mono text-right text-xs py-1 px-1.5 rounded border border-slate-700 outline-none">
+                  <span class="text-[11px] font-mono text-slate-400 ml-0.5">%</span>
+                </div>
+              </div>
+              <input type="range" id="roiRetSlider" min="3" max="15" step="0.2" value="8" class="w-full h-1.5">
+              <span class="text-[10px] text-slate-500 font-mono block">Hybrid / Fixed Inc.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. EXISTING CAPITAL, LEGACY & ACCUMULATION STRATEGY -->
+        <div class="space-y-4 p-4 bg-slate-950/60 rounded-xl border border-slate-800/80">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>4. Existing Capital & Accumulation Model</span>
+            <span class="text-[11px] font-mono text-slate-400">Assets & Goals</span>
+          </div>
+
+          <!-- Existing Lumpsum Portfolio -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label for="lumpExistingInput" class="text-[11px] text-slate-300">Existing Portfolio Today</label>
+              <div class="relative">
+                <span class="curr-symbol absolute left-2 top-1 text-slate-400 font-mono text-[11px]">₹</span>
+                <input type="number" id="lumpExistingInput" min="0" max="500000000" step="10000" value="500000" class="w-32 bg-slate-800 text-white font-mono font-bold text-right pl-5 pr-2 py-1 rounded-lg border border-slate-700 text-xs outline-none">
+              </div>
+            </div>
+            <input type="range" id="lumpExistingSlider" min="0" max="5000000" step="25000" value="500000" class="w-full h-1.5">
+          </div>
+
+          <!-- Terminal Legacy Target -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <label for="legacyTargetInput" class="text-[11px] text-slate-300">Terminal Legacy Buffer</label>
+              <div class="relative">
+                <span class="curr-symbol absolute left-2 top-1 text-slate-400 font-mono text-[11px]">₹</span>
+                <input type="number" id="legacyTargetInput" min="0" max="500000000" step="50000" value="0" class="w-32 bg-slate-800 text-amber-300 font-mono font-bold text-right pl-5 pr-2 py-1 rounded-lg border border-slate-700 text-xs outline-none">
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500 font-mono block">Capital preserved at age <span id="legacyAgeEcho">85</span> for heirs (0 = fully spent)</span>
+          </div>
+
+          <!-- Annual Step-Up % on SIP -->
+          <div class="pt-2 border-t border-slate-800/80">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-slate-300 font-semibold block">Annual SIP Step-Up (%)</span>
+                <span class="text-[10px] text-slate-500">Annual increase with salary hikes</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <input type="number" id="stepUpPctInput" min="0" max="30" step="1" value="5" class="w-14 bg-slate-800 border border-slate-700 text-brand-400 font-mono text-right text-xs py-1 px-1.5 rounded outline-none">
+                <span class="text-xs text-slate-400 font-bold">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hybrid Deficit Funding Slider -->
+          <div class="pt-2 border-t border-slate-800/80 space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300">Funding Balance (Lumpsum vs SIP)</span>
+              <span id="hybridSplitLabel" class="font-mono text-accent-400 font-bold">100% Monthly SIP</span>
+            </div>
+            <input type="range" id="hybridSplitSlider" min="0" max="100" step="5" value="0" class="w-full h-1.5">
+            <div class="flex justify-between text-[10px] font-mono text-slate-500">
+              <span>0% Extra Lumpsum (Pure SIP)</span>
+              <span>100% Lumpsum Today</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- RIGHT COLUMN: REVERSE SOLVER KPIS & VISUALIZATIONS                        -->
+      <!-- ========================================================================= -->
+      <section class="lg:col-span-7 space-y-6">
+
+        <!-- Reverse Solver Primary KPI Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Card 1: Forward-Inflated Living Expense at Retirement -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                Year 1 Retirement Expense
+              </span>
+              <span id="expenseMultBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">4.29x inflation</span>
+            </div>
+            <div>
+              <div id="retireMonthlyExpense" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">₹2,14,594</div>
+              <div class="text-xs font-mono text-slate-400 mt-1">
+                Per Month (<span id="retireAnnualExpense" class="text-slate-300">₹25.75 Lakhs / yr</span>)
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+              Exact equivalent of <span id="baseExpenseEcho" class="text-slate-400 font-mono">₹50,000/mo</span> purchasing power at age <span id="retireAgeEcho1">55</span>.
+            </p>
+          </div>
+
+          <!-- Card 2: Required Target Retirement Corpus -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-brand-500/30 rounded-2xl p-5 shadow-xl space-y-2 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-28 h-28 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-brand-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse"></span>
+                Required Capital at Retirement
+              </span>
+              <span id="perpetualStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-brand-500/15 text-brand-300 border border-brand-500/30">Sustainable 30 yrs</span>
+            </div>
+            <div>
+              <div id="targetCorpusVal" class="text-2xl sm:text-3xl font-extrabold font-mono text-brand-300">₹5.97 Cr</div>
+              <div class="text-xs font-mono text-slate-400 mt-1">
+                Sustains Step-Up SWP to Age <span id="lifeExpEcho1" class="text-slate-300">85</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+              Perpetual zero-depletion corpus: <strong id="perpetualCorpusVal" class="text-slate-300 font-mono">₹13.59 Cr</strong>
+            </p>
+          </div>
+
+          <!-- Card 3: Reverse-Engineered Monthly SIP Required -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-28 h-28 bg-accent-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-accent-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse"></span>
+                Required Starting SIP Today
+              </span>
+              <span id="stepUpEchoBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-500/15 text-accent-300 border border-accent-500/30">+5% annual step-up</span>
+            </div>
+            <div>
+              <div id="requiredSipVal" class="text-2xl sm:text-3xl font-extrabold font-mono text-white">₹18,717</div>
+              <div class="text-xs font-mono text-slate-400 mt-1">
+                Flat SIP alternative: <span id="flatSipEchoVal" class="text-slate-300 font-bold">₹26,974 / mo</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+              Covers net deficit of <span id="deficitEchoVal" class="text-slate-300 font-mono">₹5.12 Cr</span> over <span id="accYearsEcho1">25</span> years.
+            </p>
+          </div>
+
+          <!-- Card 4: Existing Lumpsum Growth & Net Funding Gap -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                Existing Assets Compound
+              </span>
+              <span id="lumpCoveragePct" class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">14.2% of goal</span>
+            </div>
+            <div>
+              <div id="lumpFutureVal" class="text-2xl sm:text-3xl font-extrabold font-mono text-indigo-200">₹85.00 L</div>
+              <div class="text-xs font-mono text-slate-400 mt-1">
+                Grows from <span id="lumpBaseEcho" class="text-slate-300">₹5.00 L</span> at <span id="roiAccEcho1">12%</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+              Or fund remaining gap with <strong id="immediateLumpAltVal" class="text-slate-300 font-mono">₹30.1 L</strong> today.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Lifetime "Mountain-Top" Chart -->
+        <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                The Lifetime "Mountain-Top" Curve
+              </h3>
+              <p class="text-xs text-slate-400">Accumulation Climb (Age <span id="chartAgeStart">30</span> ➔ <span id="chartAgePeak">55</span>) & Decumulation SWP Glidepath (Age <span id="chartAgeRet">55</span> ➔ <span id="chartAgeEnd">85</span>)</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-md border border-brand-500/30 text-brand-300">
+                <span class="w-2 h-2 rounded-full bg-brand-400"></span> Portfolio Value
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-md border border-slate-700 text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-slate-500"></span> Cumulative Invested
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-800 rounded-md border border-rose-500/30 text-rose-300">
+                <span class="w-2 h-2 rounded-full bg-rose-400"></span> Cumulative SWP
+              </span>
+            </div>
+          </div>
+
+          <div class="relative w-full h-[320px] sm:h-[360px]">
+            <canvas id="mountainChart"></canvas>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- SECTION 2: RULE OF 72 & DOUBLING TIMES DEEP DIVE -->
+    <section class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Doubling Engine & Rule of 72 Lifecycle Metrics
+          </h3>
+          <p class="text-xs text-slate-400">Benchmarking exact logarithmic compounding vs mental heuristics for both wealth accumulation and inflation erosion.</p>
+        </div>
+        <span class="text-xs font-mono text-slate-400 bg-slate-800 px-3 py-1 rounded-lg">
+          Exact: ln 2 ÷ ln(1 + r) &nbsp;|&nbsp; Rule of 72: 72 ÷ r
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        
+        <!-- Metric 1: Capital Doubling Time (Accumulation ROI) -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+          <span class="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Capital Doubling Time</span>
+          <div id="rule72ExactYears" class="text-2xl font-mono font-bold text-brand-300">6.12 Yrs</div>
+          <div class="text-[11px] font-mono text-slate-400">
+            Rule of 72 Estimate: <strong id="rule72HeuristicYears" class="text-amber-300">6.00 Yrs</strong>
+          </div>
+          <div id="rule72VarianceBadge" class="text-[10px] font-mono text-brand-400">-1.9% heuristic variance</div>
+        </div>
+
+        <!-- Metric 2: Accumulation Doubling Cycles -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+          <span class="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Accumulation Cycles</span>
+          <div id="wealthDoublingCycles" class="text-2xl font-mono font-bold text-white">4.09 Cycles</div>
+          <div class="text-[11px] font-mono text-slate-400">
+            Total Multiplier: <strong id="wealthMultTotal" class="text-indigo-300">17.0x Growth</strong>
+          </div>
+          <div class="text-[10px] text-slate-500 font-mono">During <span id="accYearsEcho2">25</span> yrs pre-retirement</div>
+        </div>
+
+        <!-- Metric 3: Expense Doubling Time (Inflation) -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+          <span class="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Expense Doubling Time</span>
+          <div id="expenseDoublingTime" class="text-2xl font-mono font-bold text-amber-300">11.90 Yrs</div>
+          <div class="text-[11px] font-mono text-slate-400">
+            At <span id="infAccEcho1" class="text-amber-400">6.0%</span> Pre-Ret. Inflation
+          </div>
+          <div id="expenseRule72" class="text-[10px] text-amber-400/80 font-mono">Rule of 72: 12.00 Yrs</div>
+        </div>
+
+        <!-- Metric 4: Lifetime Expense Doublings -->
+        <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-1.5">
+          <span class="text-[11px] font-semibold text-slate-400 block uppercase tracking-wider">Lifetime Cost Surge</span>
+          <div id="lifetimeExpenseMult" class="text-2xl font-mono font-bold text-rose-300">24.6x Total</div>
+          <div class="text-[11px] font-mono text-slate-400">
+            Doubles <strong id="expenseDoublesCount" class="text-slate-200">4.6 times</strong> by age <span id="lifeExpEcho2">85</span>
+          </div>
+          <div class="text-[10px] text-slate-500 font-mono">Why SWP step-up is vital</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: SENSITIVITY MATRIX & REAL-WORLD STRESS TESTS -->
+    <section class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            Sensitivity Stress-Testing Matrix
+          </h3>
+          <p class="text-xs text-slate-400">Evaluate how early retirement, inflation shocks, or market underperformance shift your required savings.</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase tracking-wider bg-slate-800/40">
+              <th class="py-3 px-4">Scenario</th>
+              <th class="py-3 px-4">Retire Age</th>
+              <th class="py-3 px-4">Retirement Living Cost (Mo)</th>
+              <th class="py-3 px-4">Target Corpus</th>
+              <th class="py-3 px-4">Required Monthly SIP</th>
+              <th class="py-3 px-4">SIP Delta vs Baseline</th>
+            </tr>
+          </thead>
+          <tbody id="sensitivityMatrixTbody" class="divide-y divide-slate-800/60 font-mono">
+            <!-- Populated dynamically via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 4: FULL LIFETIME YEAR-BY-YEAR AMORTIZATION LEDGER -->
+    <section class="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            Year-by-Year Lifetime Financial Ledger
+          </h3>
+          <p class="text-xs text-slate-400">Complete audit trail across accumulation and decumulation horizons with inflation-adjusted real purchasing power.</p>
+        </div>
+        <button id="exportCsvBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition self-start sm:self-auto">
+          <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Export Lifecycle Ledger (CSV)
+        </button>
+      </div>
+
+      <div class="overflow-x-auto max-h-96">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-900 z-10">
+            <tr class="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase tracking-wider bg-slate-800/40">
+              <th class="py-3 px-4">Age (year-end)</th>
+              <th class="py-3 px-4">Phase</th>
+              <th class="py-3 px-4">Opening Balance</th>
+              <th class="py-3 px-4">Annual Inflow / Outflow</th>
+              <th class="py-3 px-4">Annual Growth Earned</th>
+              <th class="py-3 px-4">Closing Balance</th>
+              <th class="py-3 px-4">Real Value (Today's Eqv)</th>
+            </tr>
+          </thead>
+          <tbody id="lifecycleLedgerTbody" class="divide-y divide-slate-800/60 font-mono">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500 font-mono space-y-1">
+    <p class="text-slate-300">OmniLifecycle Engine. Designed and built by <strong data-author-name>Your Name</strong>.</p>
+    <p class="text-[11px] text-slate-600">&copy; <span id="yearNow">2026</span> <span data-author-name>Your Name</span>. For planning illustrations only. Not investment, tax or financial advice; returns and inflation are assumptions, not guarantees.</p>
+  </footer>
+
+  <script>
+    /* =========================================================================
+     * APPLICATION STATE & FORMATTING UTILITIES
+     * ========================================================================= */
+    /* ---- Authorship: edit these two values ---- */
+    const AUTHOR = { name: 'T Chiranjeevi Srinidhi', url: '' };
+
+    const state = {
+      currency: '₹',
+      compactNotation: true,
+      currentAge: 30,
+      retireAge: 55,
+      lifeExpectancy: 85,
+      currentMonthlyExpense: 50000,
+      infAcc: 6.0,
+      infRet: 6.0,
+      roiAcc: 12.0,
+      roiRet: 8.0,
+      existingLumpsum: 500000,
+      legacyTarget: 0,
+      stepUpPct: 5.0,
+      hybridLumpPct: 0, // 0 = 100% SIP, 100 = 100% Lumpsum today
+      ledgerSchedule: [],
+      chartInstance: null
+    };
+
+    /**
+     * Multi-Currency Formatter with Indian (Lakh/Crore) and Western (K/M/B) notation
+     */
+    function formatCurrency(num, forceFull = false) {
+      if (num === null || num === undefined || isNaN(num)) return `${state.currency}0`;
+      const isNegative = num < 0;
+      const absVal = Math.abs(num);
+
+      if (!forceFull && state.compactNotation) {
+        if (state.currency === '₹') {
+          if (absVal >= 10000000) return `${isNegative ? '-' : ''}₹${(absVal / 10000000).toFixed(2)} Cr`;
+          if (absVal >= 100000) return `${isNegative ? '-' : ''}₹${(absVal / 100000).toFixed(2)} L`;
+          if (absVal >= 1000) return `${isNegative ? '-' : ''}₹${(absVal / 1000).toFixed(1)} k`;
+        } else {
+          if (absVal >= 1000000000) return `${isNegative ? '-' : ''}${state.currency}${(absVal / 1000000000).toFixed(2)}B`;
+          if (absVal >= 1000000) return `${isNegative ? '-' : ''}${state.currency}${(absVal / 1000000).toFixed(2)}M`;
+          if (absVal >= 1000) return `${isNegative ? '-' : ''}${state.currency}${(absVal / 1000).toFixed(1)}k`;
+        }
+      }
+
+      if (state.currency === '₹') {
+        return `${isNegative ? '-' : ''}₹${Math.round(absVal).toLocaleString('en-IN')}`;
+      } else {
+        return `${isNegative ? '-' : ''}${state.currency}${Math.round(absVal).toLocaleString('en-US')}`;
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-20');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-20');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2500);
+    }
+
+    function updateCurrencySymbols() {
+      document.querySelectorAll('.curr-symbol').forEach(el => {
+        el.textContent = state.currency;
+      });
+
+      // Update slider range labels based on currency
+      const isInr = state.currency === '₹';
+      document.querySelector('.min-exp-lbl').textContent = isInr ? '₹10k' : `${state.currency}1k`;
+      document.querySelector('.mid-exp-lbl').textContent = isInr ? '₹150k' : `${state.currency}10k`;
+      document.querySelector('.max-exp-lbl').textContent = isInr ? '₹300k' : `${state.currency}30k`;
+      const sc = isInr ? 1 : 0.1;
+      [['expenseMonthlySlider', 'expenseMonthlyInput', 10000, 300000, 2000, 5000, 10000000],
+       ['lumpExistingSlider', 'lumpExistingInput', 0, 5000000, 25000, 0, 500000000]].forEach(([sid, iid, mn, mx, st, imn, imx]) => {
+        const sl = document.getElementById(sid), inp = document.getElementById(iid);
+        sl.min = mn * sc; sl.step = st * sc; sl.max = Math.max(mx * sc, parseFloat(inp.value) || 0);
+        inp.min = imn * sc; inp.max = imx * sc; sl.value = inp.value;
+      });
+    }
+
+    /* =========================================================================
+     * MATHEMATICAL REVERSE-ENGINEERING ENGINE
+     * ========================================================================= */
+    function solveLifecycleEngine(overrideParams = {}) {
+      const currAge = overrideParams.currentAge ?? state.currentAge;
+      const retAge = overrideParams.retireAge ?? state.retireAge;
+      const lifeExp = overrideParams.lifeExpectancy ?? state.lifeExpectancy;
+      const monthlyExp0 = overrideParams.currentMonthlyExpense ?? state.currentMonthlyExpense;
+      const infAcc = (overrideParams.infAcc ?? state.infAcc) / 100;
+      const infRet = (overrideParams.infRet ?? state.infRet) / 100;
+      const roiAcc = (overrideParams.roiAcc ?? state.roiAcc) / 100;
+      const roiRet = (overrideParams.roiRet ?? state.roiRet) / 100;
+      const lumpsum0 = overrideParams.existingLumpsum ?? state.existingLumpsum;
+      const legacyTarget = overrideParams.legacyTarget ?? state.legacyTarget;
+      const stepUpRate = (overrideParams.stepUpPct ?? state.stepUpPct) / 100;
+      const hybridPct = (overrideParams.hybridLumpPct ?? state.hybridLumpPct) / 100;
+
+      const tAcc = Math.max(1, retAge - currAge);
+      const tRet = Math.max(1, lifeExp - retAge);
+
+      // STEP 1: Forward Inflation of Living Expenses
+      const annualExp0 = monthlyExp0 * 12;
+      const expenseInflationFactor = Math.pow(1 + infAcc, tAcc);
+      const retYear1AnnualExp = annualExp0 * expenseInflationFactor;
+      const retYear1MonthlyExp = retYear1AnnualExp / 12;
+
+      // STEP 2: Exact Reverse Sizing of Target Retirement Corpus (C_ret)
+      // Month-by-month reverse backward propagation to guarantee zero discrepancy with SWP glidepath
+      const totalRetMonths = tRet * 12;
+      const monthlyRoiRet = Math.pow(1 + roiRet, 1 / 12) - 1;
+
+      let neededCorpus = legacyTarget;
+      for (let m = totalRetMonths; m >= 1; m--) {
+        const yearIdx = Math.floor((m - 1) / 12); // 0 to tRet - 1
+        const monthlyDrawInYear = (retYear1AnnualExp * Math.pow(1 + infRet, yearIdx)) / 12;
+        // In reverse: previous balance before monthly interest and start-of-month draw:
+        neededCorpus = (neededCorpus / (1 + monthlyRoiRet)) + monthlyDrawInYear;
+      }
+      const targetCorpus = neededCorpus;
+
+      // Perpetual Zero-Depletion Corpus Benchmark
+      const netRealRoi = ((1 + roiRet) / (1 + infRet)) - 1;
+      // Exact corpus that keeps real (inflation-adjusted) value intact with start-of-month draws
+      const perpetualCorpus = (roiRet > infRet && monthlyRoiRet > 0)
+        ? (retYear1AnnualExp / 12) * (1 + monthlyRoiRet) * (roiRet / monthlyRoiRet) / (roiRet - infRet)
+        : Infinity;
+
+      // STEP 3: Lumpsum Compounding & Net Accumulation Deficit
+      const fvLumpsum = lumpsum0 * Math.pow(1 + roiAcc, tAcc);
+      const netDeficit = Math.max(0, targetCorpus - fvLumpsum);
+
+      // Hybrid Split: Portion funded by additional lumpsum today vs monthly SIP
+      const extraLumpsumGap = netDeficit * hybridPct;
+      const sipGap = netDeficit * (1 - hybridPct);
+      const additionalLumpToday = extraLumpsumGap / Math.pow(1 + roiAcc, tAcc);
+
+      // Solve for Required Starting Monthly SIP (with annual step-up)
+      const monthlyRoiAcc = Math.pow(1 + roiAcc, 1 / 12) - 1;
+      let stepUpFactor = 0;
+      let flatSipFactor = 0;
+
+      for (let y = 1; y <= tAcc; y++) {
+        const yearStepMult = Math.pow(1 + stepUpRate, y - 1);
+        for (let m = 1; m <= 12; m++) {
+          const monthsRemaining = (tAcc - y) * 12 + (12 - m + 1);
+          const compoundGrowth = Math.pow(1 + monthlyRoiAcc, monthsRemaining);
+          stepUpFactor += yearStepMult * compoundGrowth;
+          flatSipFactor += compoundGrowth;
+        }
+      }
+
+      const requiredStartingStepUpSip = sipGap > 0 ? (sipGap / stepUpFactor) : 0;
+      const requiredFlatSip = sipGap > 0 ? (sipGap / flatSipFactor) : 0;
+      const pureLumpNeededToday = netDeficit / Math.pow(1 + roiAcc, tAcc);
+
+      // STEP 4: Rule of 72 & Doubling Times Analytics
+      const exactCapitalDoublingTime = roiAcc > 0 ? (Math.log(2) / Math.log(1 + roiAcc)) : Infinity;
+      const heuristicRule72Years = roiAcc > 0 ? (72 / (roiAcc * 100)) : Infinity;
+      const rule72Variance = isFinite(exactCapitalDoublingTime) 
+        ? ((heuristicRule72Years - exactCapitalDoublingTime) / exactCapitalDoublingTime) * 100 
+        : 0;
+
+      const accumulationDoublingCycles = tAcc / exactCapitalDoublingTime;
+      const wealthMultiplier = Math.pow(2, accumulationDoublingCycles);
+
+      const exactExpenseDoublingTime = infAcc > 0 ? (Math.log(2) / Math.log(1 + infAcc)) : Infinity;
+      const totalExpenseMultiplier = expenseInflationFactor * Math.pow(1 + infRet, tRet);
+      const totalExpenseDoublings = Math.log(totalExpenseMultiplier) / Math.log(2);
+
+      return {
+        currAge, retAge, lifeExp, tAcc, tRet,
+        monthlyExp0, retYear1MonthlyExp, retYear1AnnualExp, expenseInflationFactor,
+        targetCorpus, perpetualCorpus, fvLumpsum, netDeficit,
+        requiredStartingStepUpSip, requiredFlatSip, additionalLumpToday, pureLumpNeededToday,
+        exactCapitalDoublingTime, heuristicRule72Years, rule72Variance,
+        accumulationDoublingCycles, wealthMultiplier,
+        exactExpenseDoublingTime, totalExpenseMultiplier, totalExpenseDoublings
+      };
+    }
+
+    /* =========================================================================
+     * MOUNTAIN-TOP LIFECYCLE SIMULATION & VISUALIZATION
+     * ========================================================================= */
+    function generateLifecycleSchedule(calc) {
+      const schedule = [];
+      const totalMonthsAcc = calc.tAcc * 12;
+      const monthlyRoiAcc = Math.pow(1 + state.roiAcc / 100, 1 / 12) - 1;
+      const monthlyRoiRet = Math.pow(1 + state.roiRet / 100, 1 / 12) - 1;
+      const stepUp = state.stepUpPct / 100;
+      const infRet = state.infRet / 100;
+
+      let currentBalance = state.existingLumpsum + calc.additionalLumpToday;
+      let cumulativeInvested = currentBalance;
+      let cumulativeWithdrawn = 0;
+      let currentMonthlySip = calc.requiredStartingStepUpSip;
+
+      // ACCUMULATION PHASE (Year 1 to tAcc)
+      for (let y = 1; y <= calc.tAcc; y++) {
+        const age = state.currentAge + y;
+        const opening = currentBalance;
+        let yearInflow = 0;
+        let yearGrowth = 0;
+
+        if (y > 1) {
+          currentMonthlySip = currentMonthlySip * (1 + stepUp);
+        }
+
+        for (let m = 1; m <= 12; m++) {
+          currentBalance += currentMonthlySip;
+          yearInflow += currentMonthlySip;
+          cumulativeInvested += currentMonthlySip;
+
+          const growth = currentBalance * monthlyRoiAcc;
+          currentBalance += growth;
+          yearGrowth += growth;
+        }
+
+        // Calculate purchasing power relative to current year
+        const cumulativeInflationAcc = Math.pow(1 + (state.infAcc / 100), y);
+        const realPurchasingPower = currentBalance / cumulativeInflationAcc;
+
+        schedule.push({
+          year: y,
+          age: age,
+          phase: 'Accumulation',
+          opening: opening,
+          inflowOutflow: yearInflow,
+          growth: yearGrowth,
+          closing: currentBalance,
+          realValue: realPurchasingPower,
+          cumulativeInvested: cumulativeInvested,
+          cumulativeWithdrawn: 0
+        });
+      }
+
+      // DECUMULATION PHASE (Year tAcc + 1 to tAcc + tRet)
+      for (let y = 1; y <= calc.tRet; y++) {
+        const age = state.retireAge + y;
+        const opening = currentBalance;
+        let yearOutflow = 0;
+        let yearGrowth = 0;
+        const currentMonthlyDraw = (calc.retYear1AnnualExp * Math.pow(1 + infRet, y - 1)) / 12;
+
+        for (let m = 1; m <= 12; m++) {
+          const draw = Math.min(currentBalance, currentMonthlyDraw);
+          currentBalance -= draw;
+          yearOutflow += draw;
+          cumulativeWithdrawn += draw;
+
+          const growth = currentBalance * monthlyRoiRet;
+          currentBalance += growth;
+          yearGrowth += growth;
+        }
+
+        const totalElapsedYears = calc.tAcc + y;
+        const cumulativeInflationOverall = Math.pow(1 + (state.infAcc / 100), calc.tAcc) * Math.pow(1 + (state.infRet / 100), y);
+        const realPurchasingPower = Math.max(0, currentBalance) / cumulativeInflationOverall;
+
+        schedule.push({
+          year: calc.tAcc + y,
+          age: age,
+          phase: 'Decumulation (SWP)',
+          opening: opening,
+          inflowOutflow: -yearOutflow,
+          growth: yearGrowth,
+          closing: Math.max(0, currentBalance),
+          realValue: realPurchasingPower,
+          cumulativeInvested: cumulativeInvested,
+          cumulativeWithdrawn: cumulativeWithdrawn
+        });
+      }
+
+      return schedule;
+    }
+
+    function renderMountainTopChart(schedule, calc) {
+      const labels = [state.currentAge, ...schedule.map(s => s.age)];
+      const portfolioCurve = [state.existingLumpsum + calc.additionalLumpToday, ...schedule.map(s => Math.round(s.closing))];
+      const investedCurve = [state.existingLumpsum + calc.additionalLumpToday, ...schedule.map(s => Math.round(s.cumulativeInvested))];
+      const withdrawnCurve = [0, ...schedule.map(s => Math.round(s.cumulativeWithdrawn))];
+
+      const ctx = document.getElementById('mountainChart').getContext('2d');
+      if (state.chartInstance) state.chartInstance.destroy();
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+      gradient.addColorStop(0, 'rgba(16, 185, 129, 0.40)');
+      gradient.addColorStop(0.5, 'rgba(16, 185, 129, 0.12)');
+      gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+      state.chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Portfolio Value (Net)',
+              data: portfolioCurve,
+              borderColor: '#10b981',
+              backgroundColor: gradient,
+              borderWidth: 3,
+              fill: true,
+              tension: 0.28,
+              pointRadius: (ctx) => {
+                const index = ctx.dataIndex;
+                const age = labels[index];
+                return (age === state.retireAge) ? 6 : 0;
+              },
+              pointBackgroundColor: '#10b981',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Cumulative Invested',
+              data: investedCurve,
+              borderColor: '#64748b',
+              borderWidth: 2,
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Cumulative SWP Draws',
+              data: withdrawnCurve,
+              borderColor: '#f43f5e',
+              borderWidth: 2,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              padding: 12,
+              titleFont: { family: '"JetBrains Mono", monospace', size: 13 },
+              bodyFont: { family: '"Plus Jakarta Sans", sans-serif', size: 12 },
+              callbacks: {
+                title: (items) => `Age ${items[0].label} (${parseInt(items[0].label) > state.retireAge ? 'Decumulation' : 'Accumulation'})`,
+                label: (c) => ` ${c.dataset.label}: ${formatCurrency(c.parsed.y, true)}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(51, 65, 85, 0.2)' },
+              ticks: { color: '#64748b', font: { family: '"JetBrains Mono", monospace' } }
+            },
+            y: {
+              grid: { color: 'rgba(51, 65, 85, 0.2)' },
+              ticks: {
+                color: '#64748b',
+                font: { family: '"JetBrains Mono", monospace' },
+                callback: (v) => formatCurrency(v)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /* =========================================================================
+     * UI SYNC, LEDGER, SENSITIVITY TABLE, AND CSV
+     * ========================================================================= */
+    function updateDashboard() {
+      // Age validation check
+      if (state.retireAge <= state.currentAge) {
+        state.retireAge = state.currentAge + 1;
+        document.getElementById('retireAgeInput').value = state.retireAge;
+        document.getElementById('retireAgeSlider').value = state.retireAge;
+      }
+      if (state.lifeExpectancy <= state.retireAge) {
+        state.lifeExpectancy = state.retireAge + 5;
+        document.getElementById('lifeExpInput').value = state.lifeExpectancy;
+      }
+
+      const calc = solveLifecycleEngine();
+      const schedule = generateLifecycleSchedule(calc);
+      state.ledgerSchedule = schedule;
+      document.getElementById('retireAgeSlider').min = Math.min(75, state.currentAge + 1);
+      document.getElementById('legacyAgeEcho').textContent = state.lifeExpectancy;
+      document.getElementById('lifeExpEcho2').textContent = state.lifeExpectancy;
+      document.getElementById('expenseRule72').textContent = isFinite(calc.exactExpenseDoublingTime) ? `Rule of 72: ${(72 / state.infAcc).toFixed(2)} Yrs` : 'Rule of 72: N/A';
+      document.getElementById('notationLabel').textContent = state.compactNotation ? (state.currency === '₹' ? 'Compact (Cr/L)' : 'Compact (M/B)') : 'Full notation';
+
+      // Badges & Labels Echo
+      document.getElementById('accYearsBadge').textContent = `${calc.tAcc} yrs`;
+      document.getElementById('retYearsBadge').textContent = `${calc.tRet} yrs`;
+      document.getElementById('currAgeDisplay').textContent = `${state.currentAge} yrs`;
+      document.getElementById('retireAgeDisplay').textContent = `${state.retireAge} yrs`;
+      document.getElementById('retireAgeEcho1').textContent = state.retireAge;
+      document.getElementById('lifeExpEcho1').textContent = state.lifeExpectancy;
+      document.getElementById('accYearsEcho1').textContent = calc.tAcc;
+      document.getElementById('accYearsEcho2').textContent = calc.tAcc;
+      document.getElementById('roiAccEcho1').textContent = `${state.roiAcc.toFixed(1)}%`;
+      document.getElementById('infAccEcho1').textContent = `${state.infAcc.toFixed(1)}%`;
+      document.getElementById('baseExpenseEcho').textContent = formatCurrency(state.currentMonthlyExpense);
+      document.getElementById('lumpBaseEcho').textContent = formatCurrency(state.existingLumpsum);
+      document.getElementById('stepUpEchoBadge').textContent = `+${state.stepUpPct}% annual step-up`;
+
+      document.getElementById('chartAgeStart').textContent = state.currentAge;
+      document.getElementById('chartAgePeak').textContent = state.retireAge;
+      document.getElementById('chartAgeRet').textContent = state.retireAge;
+      document.getElementById('chartAgeEnd').textContent = state.lifeExpectancy;
+
+      // Card 1: Forward Inflated Living Expense
+      document.getElementById('retireMonthlyExpense').textContent = formatCurrency(calc.retYear1MonthlyExp);
+      document.getElementById('retireAnnualExpense').textContent = `${formatCurrency(calc.retYear1AnnualExp)} / yr`;
+      document.getElementById('expenseMultBadge').textContent = `${calc.expenseInflationFactor.toFixed(2)}x inflation`;
+
+      // Card 2: Required Target Retirement Corpus
+      document.getElementById('targetCorpusVal').textContent = formatCurrency(calc.targetCorpus);
+      document.getElementById('perpetualCorpusVal').textContent = isFinite(calc.perpetualCorpus) 
+        ? formatCurrency(calc.perpetualCorpus) 
+        : 'N/A (Inf > Return)';
+      document.getElementById('perpetualStatusBadge').textContent = `Funded to age ${state.lifeExpectancy}`;
+
+      // Card 3: Reverse Monthly SIP
+      document.getElementById('requiredSipVal').textContent = formatCurrency(calc.requiredStartingStepUpSip);
+      document.getElementById('flatSipEchoVal').textContent = `${formatCurrency(calc.requiredFlatSip)} / mo`;
+      document.getElementById('deficitEchoVal').textContent = formatCurrency(calc.netDeficit);
+
+      // Card 4: Existing Lumpsum Growth & Gap
+      document.getElementById('lumpFutureVal').textContent = formatCurrency(calc.fvLumpsum);
+      const coveragePct = calc.targetCorpus > 0 ? ((calc.fvLumpsum / calc.targetCorpus) * 100).toFixed(1) : '100.0';
+      document.getElementById('lumpCoveragePct').textContent = `${coveragePct}% of goal`;
+      document.getElementById('immediateLumpAltVal').textContent = formatCurrency(calc.pureLumpNeededToday);
+
+      // Hybrid Slider label update
+      if (state.hybridLumpPct === 0) {
+        document.getElementById('hybridSplitLabel').textContent = "100% Monthly SIP";
+      } else if (state.hybridLumpPct === 100) {
+        document.getElementById('hybridSplitLabel').textContent = `100% Lumpsum (${formatCurrency(calc.pureLumpNeededToday)} today)`;
+      } else {
+        document.getElementById('hybridSplitLabel').textContent = `${state.hybridLumpPct}% Lumpsum (${formatCurrency(calc.additionalLumpToday)}) + SIP`;
+      }
+
+      // Rule of 72 & Doubling Analytics
+      document.getElementById('rule72ExactYears').textContent = isFinite(calc.exactCapitalDoublingTime) 
+        ? `${calc.exactCapitalDoublingTime.toFixed(2)} Yrs` 
+        : 'N/A';
+      document.getElementById('rule72HeuristicYears').textContent = isFinite(calc.heuristicRule72Years) 
+        ? `${calc.heuristicRule72Years.toFixed(2)} Yrs` 
+        : 'N/A';
+      const varSign = calc.rule72Variance >= 0 ? '+' : '';
+      document.getElementById('rule72VarianceBadge').textContent = `${varSign}${calc.rule72Variance.toFixed(1)}% heuristic variance`;
+
+      document.getElementById('wealthDoublingCycles').textContent = `${calc.accumulationDoublingCycles.toFixed(2)} Cycles`;
+      document.getElementById('wealthMultTotal').textContent = `${calc.wealthMultiplier.toFixed(1)}x Growth`;
+
+      document.getElementById('expenseDoublingTime').textContent = isFinite(calc.exactExpenseDoublingTime) 
+        ? `${calc.exactExpenseDoublingTime.toFixed(2)} Yrs` 
+        : 'N/A';
+      document.getElementById('lifetimeExpenseMult').textContent = `${calc.totalExpenseMultiplier.toFixed(1)}x Total`;
+      document.getElementById('expenseDoublesCount').textContent = `${calc.totalExpenseDoublings.toFixed(1)} times`;
+
+      // Render Visualizations & Schedules
+      renderMountainTopChart(schedule, calc);
+      renderSensitivityMatrix();
+      renderLifecycleLedger(schedule);
+    }
+
+    function renderSensitivityMatrix() {
+      const tbody = document.getElementById('sensitivityMatrixTbody');
+      tbody.innerHTML = '';
+
+      const baseline = solveLifecycleEngine();
+
+      const scenarios = [
+        { name: 'Baseline model', desc: 'Current settings', params: {} },
+        { name: 'Retire 2 years earlier', desc: `Age ${Math.max(state.currentAge + 1, state.retireAge - 2)}`, params: { retireAge: Math.max(state.currentAge + 1, state.retireAge - 2) } },
+        { name: 'Retire 5 years earlier', desc: `Age ${Math.max(state.currentAge + 1, state.retireAge - 5)}`, params: { retireAge: Math.max(state.currentAge + 1, state.retireAge - 5) } },
+        { name: 'Retire 3 years later', desc: `Age ${state.retireAge + 3}`, params: { retireAge: state.retireAge + 3 } },
+        { name: 'Inflation surge (+1.5%)', desc: `Pre & Post ${ (state.infAcc + 1.5).toFixed(1) }%`, params: { infAcc: state.infAcc + 1.5, infRet: state.infRet + 1.5 } },
+        { name: 'Conservative returns (-2%)', desc: `Acc ${ (state.roiAcc - 2).toFixed(1) }%, Dec ${ (state.roiRet - 2).toFixed(1) }%`, params: { roiAcc: state.roiAcc - 2, roiRet: state.roiRet - 2 } }
+      ];
+
+      scenarios.forEach(sc => {
+        const res = solveLifecycleEngine(sc.params);
+        const sipDiff = res.requiredStartingStepUpSip - baseline.requiredStartingStepUpSip;
+        const diffPct = baseline.requiredStartingStepUpSip > 0 ? (sipDiff / baseline.requiredStartingStepUpSip) * 100 : 0;
+        const sign = sipDiff >= 0 ? '+' : '';
+
+        const row = document.createElement('tr');
+        row.className = sc.name.includes('Baseline') 
+          ? "bg-brand-500/10 text-white font-semibold border-l-4 border-l-brand-400" 
+          : "hover:bg-slate-800/40 text-slate-300 transition";
+
+        row.innerHTML = `
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-100">${sc.name}</div>
+            <div class="text-[10px] text-slate-400 font-sans">${sc.desc}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-300">${res.retAge} yrs</td>
+          <td class="py-3 px-4 text-amber-300">${formatCurrency(res.retYear1MonthlyExp)}</td>
+          <td class="py-3 px-4 text-brand-300 font-bold">${formatCurrency(res.targetCorpus)}</td>
+          <td class="py-3 px-4 text-slate-100 font-bold">${formatCurrency(res.requiredStartingStepUpSip)}</td>
+          <td class="py-3 px-4">
+            ${sc.name.includes('Baseline') ? '<span class="text-slate-500">Benchmark</span>' : `
+              <span class="px-2 py-0.5 rounded text-[10px] ${sipDiff > 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-brand-500/20 text-brand-300'}">
+                ${sign}${formatCurrency(sipDiff)} (${sign}${diffPct.toFixed(1)}%)
+              </span>
+            `}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderLifecycleLedger(schedule) {
+      const tbody = document.getElementById('lifecycleLedgerTbody');
+      tbody.innerHTML = '';
+
+      schedule.forEach(row => {
+        const tr = document.createElement('tr');
+        const isRetireYear = row.age === state.retireAge;
+        tr.className = isRetireYear 
+          ? "bg-brand-500/15 text-white font-semibold border-l-4 border-l-brand-400" 
+          : "hover:bg-slate-800/40 text-slate-300 transition";
+
+        const isInflow = row.inflowOutflow >= 0;
+        const flowColor = isInflow ? 'text-accent-400' : 'text-rose-400';
+        const flowPrefix = isInflow ? '+' : '-';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-bold text-white flex items-center gap-1.5">
+            Age ${row.age}
+            ${isRetireYear ? '<span class="text-[9px] bg-brand-500 text-slate-950 px-1.5 py-0.2 rounded font-sans font-extrabold uppercase">Retire Peak</span>' : ''}
+          </td>
+          <td class="py-3 px-4 ${row.phase.includes('Accumulation') ? 'text-brand-400' : 'text-amber-400'}">${row.phase}</td>
+          <td class="py-3 px-4 text-slate-300">${formatCurrency(row.opening)}</td>
+          <td class="py-3 px-4 ${flowColor}">${flowPrefix}${formatCurrency(Math.abs(row.inflowOutflow))}</td>
+          <td class="py-3 px-4 text-brand-300">+${formatCurrency(row.growth)}</td>
+          <td class="py-3 px-4 font-bold text-indigo-300">${formatCurrency(row.closing)}</td>
+          <td class="py-3 px-4 text-slate-400">${formatCurrency(row.realValue)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // CSV Ledger Exporter
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      if (!state.ledgerSchedule.length) return;
+      let csv = "Age,Phase,Opening Balance,Annual Inflow/Outflow,Annual Growth,Closing Balance,Real Value\n";
+      state.ledgerSchedule.forEach(r => {
+        csv += `${r.age},${r.phase},${r.opening.toFixed(2)},${r.inflowOutflow.toFixed(2)},${r.growth.toFixed(2)},${r.closing.toFixed(2)},${r.realValue.toFixed(2)}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Lifecycle_Ledger_${Date.now()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("Lifecycle Ledger exported to CSV!");
+    });
+
+    /* =========================================================================
+     * SYNCHRONIZED TWO-WAY INPUT CONTROLLERS & EVENT BINDINGS
+     * ========================================================================= */
+    function syncTwoWay(sliderId, inputId, stateKey, isFloat = false) {
+      const slider = document.getElementById(sliderId);
+      const input = document.getElementById(inputId);
+      input.addEventListener('change', () => {
+        input.value = isFloat ? Number(state[stateKey]).toFixed(1) : state[stateKey];
+      });
+
+      slider.addEventListener('input', (e) => {
+        const val = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+        state[stateKey] = val;
+        input.value = isFloat ? val.toFixed(1) : val;
+        updateDashboard();
+      });
+
+      input.addEventListener('input', (e) => {
+        let val = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+        const lo = parseFloat(input.min), hi = parseFloat(input.max);
+        if (isNaN(val) || val < lo || val > hi) return; // wait until the typed value is complete
+        state[stateKey] = val;
+        slider.value = val;
+        updateDashboard();
+      });
+    }
+
+    // Age Sync
+    syncTwoWay('currAgeSlider', 'currAgeInput', 'currentAge');
+    syncTwoWay('retireAgeSlider', 'retireAgeInput', 'retireAge');
+    document.getElementById('lifeExpInput').addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      if (isNaN(v) || v < 50 || v > 100) return;
+      state.lifeExpectancy = v;
+      updateDashboard();
+    });
+
+    // Expenses & Inflation Sync
+    syncTwoWay('expenseMonthlySlider', 'expenseMonthlyInput', 'currentMonthlyExpense');
+    syncTwoWay('infAccSlider', 'infAccInput', 'infAcc', true);
+    syncTwoWay('infRetSlider', 'infRetInput', 'infRet', true);
+
+    // Return Rates Sync
+    syncTwoWay('roiAccSlider', 'roiAccInput', 'roiAcc', true);
+    syncTwoWay('roiRetSlider', 'roiRetInput', 'roiRet', true);
+
+    // Existing Assets & Strategy Sync
+    syncTwoWay('lumpExistingSlider', 'lumpExistingInput', 'existingLumpsum');
+    document.getElementById('legacyTargetInput').addEventListener('input', (e) => {
+      state.legacyTarget = parseFloat(e.target.value) || 0;
+      updateDashboard();
+    });
+    document.getElementById('stepUpPctInput').addEventListener('input', (e) => {
+      state.stepUpPct = parseFloat(e.target.value) || 0;
+      updateDashboard();
+    });
+    document.getElementById('hybridSplitSlider').addEventListener('input', (e) => {
+      state.hybridLumpPct = parseInt(e.target.value, 10);
+      updateDashboard();
+    });
+
+    // Currency Switcher
+    const currBtns = document.querySelectorAll('.curr-btn');
+    currBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currBtns.forEach(b => {
+          b.classList.remove('active-curr', 'bg-slate-800', 'text-brand-400', 'border', 'border-brand-500/30');
+          b.classList.add('text-slate-400');
+        });
+        btn.classList.add('active-curr', 'bg-slate-800', 'text-brand-400', 'border', 'border-brand-500/30');
+        btn.classList.remove('text-slate-400');
+
+        state.currency = btn.getAttribute('data-curr');
+        updateCurrencySymbols();
+        updateDashboard();
+        showToast(`Switched currency to ${state.currency}`);
+      });
+    });
+
+    // Compact Notation Toggle
+    const notationToggleBtn = document.getElementById('notationToggleBtn');
+    const notationLabel = document.getElementById('notationLabel');
+    notationToggleBtn.addEventListener('click', () => {
+      state.compactNotation = !state.compactNotation;
+      notationLabel.textContent = state.compactNotation 
+        ? (state.currency === '₹' ? 'Compact (Cr/L)' : 'Compact (M/B)') 
+        : 'Full Notation';
+      updateDashboard();
+    });
+
+    // Archetype Presets Handler
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-preset');
+        if (type === 'young') {
+          state.currentAge = 28;
+          state.retireAge = 55;
+          state.lifeExpectancy = 85;
+          state.currentMonthlyExpense = state.currency === '₹' ? 45000 : 3500;
+          state.infAcc = 6.0;
+          state.infRet = 5.5;
+          state.roiAcc = 13.0;
+          state.roiRet = 8.5;
+          state.existingLumpsum = state.currency === '₹' ? 300000 : 25000;
+          state.stepUpPct = 7;
+        } else if (type === 'fire') {
+          state.currentAge = 32;
+          state.retireAge = 48;
+          state.lifeExpectancy = 88;
+          state.currentMonthlyExpense = state.currency === '₹' ? 120000 : 7000;
+          state.infAcc = 6.5;
+          state.infRet = 6.0;
+          state.roiAcc = 12.0;
+          state.roiRet = 8.0;
+          state.existingLumpsum = state.currency === '₹' ? 2500000 : 150000;
+          state.stepUpPct = 10;
+        } else if (type === 'traditional') {
+          state.currentAge = 35;
+          state.retireAge = 60;
+          state.lifeExpectancy = 85;
+          state.currentMonthlyExpense = state.currency === '₹' ? 75000 : 5000;
+          state.infAcc = 5.5;
+          state.infRet = 5.0;
+          state.roiAcc = 11.5;
+          state.roiRet = 7.5;
+          state.existingLumpsum = state.currency === '₹' ? 1200000 : 80000;
+          state.stepUpPct = 5;
+        }
+
+        // Apply state values back to DOM inputs & sliders
+        document.getElementById('currAgeInput').value = state.currentAge;
+        document.getElementById('currAgeSlider').value = state.currentAge;
+        document.getElementById('retireAgeInput').value = state.retireAge;
+        document.getElementById('retireAgeSlider').value = state.retireAge;
+        document.getElementById('lifeExpInput').value = state.lifeExpectancy;
+        document.getElementById('expenseMonthlyInput').value = state.currentMonthlyExpense;
+        document.getElementById('expenseMonthlySlider').value = Math.min(state.currentMonthlyExpense, 300000);
+        document.getElementById('infAccInput').value = state.infAcc.toFixed(1);
+        document.getElementById('infAccSlider').value = state.infAcc;
+        document.getElementById('infRetInput').value = state.infRet.toFixed(1);
+        document.getElementById('infRetSlider').value = state.infRet;
+        document.getElementById('roiAccInput').value = state.roiAcc.toFixed(1);
+        document.getElementById('roiAccSlider').value = state.roiAcc;
+        document.getElementById('roiRetInput').value = state.roiRet.toFixed(1);
+        document.getElementById('roiRetSlider').value = state.roiRet;
+        document.getElementById('lumpExistingInput').value = state.existingLumpsum;
+        document.getElementById('lumpExistingSlider').value = Math.min(state.existingLumpsum, 5000000);
+        document.getElementById('stepUpPctInput').value = state.stepUpPct;
+
+        updateDashboard();
+        showToast(`Loaded ${btn.textContent.trim()} preset!`);
+      });
+    });
+
+    // Initial Load Execution
+    window.addEventListener('DOMContentLoaded', () => {
+      updateCurrencySymbols();
+      updateDashboard();
+      document.querySelectorAll('[data-author-name]').forEach(el => el.textContent = AUTHOR.name);
+      const ini = AUTHOR.name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+      document.querySelectorAll('[data-author-initials]').forEach(el => el.textContent = ini || 'ME');
+      document.querySelectorAll('[data-author-link]').forEach(el => {
+        if (AUTHOR.url) { el.href = AUTHOR.url; el.target = '_blank'; el.rel = 'noopener'; }
+        else { el.removeAttribute('href'); el.classList.remove('underline'); }
+      });
+      document.querySelector('meta[name="author"]').content = AUTHOR.name;
+      document.getElementById('yearNow').textContent = new Date().getFullYear();
+      const rangeNames = { hybridSplitSlider: 'Lumpsum versus SIP funding split' };
+      document.querySelectorAll('input[type=range]').forEach(el => {
+        const lab = document.querySelector('label[for="' + el.id.replace('Slider', 'Input') + '"]');
+        el.setAttribute('aria-label', rangeNames[el.id] || (lab ? lab.textContent.trim() : el.id));
+      });
+    });
+  </script>
+</body>
+</html>
